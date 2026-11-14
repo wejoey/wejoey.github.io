@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1d3557">
+  <title>Le jeu des drapeaux</title>
+  <style>
+    /* Police de drapeaux hébergée localement (Twemoji, CC-BY 4.0) :
+       les drapeaux s'affichent pareil partout, même sur Windows. */
+    @font-face {
+      font-family: "Drapeaux";
+      src: url("TwemojiCountryFlags.woff2") format("woff2");
+      unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E007F;
+      font-display: swap;
+    }
+    :root {
+      --bg: #f1f5fb;
+      --card: #ffffff;
+      --ink: #1d3557;
+      --muted: #5b6b82;
+      --accent: #2a6fdb;
+      --good: #1e9e5a;
+      --bad: #d64545;
+      --line: #dbe3ee;
+      --timer: #f4a261;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    }
+    main { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+    .screen { display: none; flex-direction: column; gap: 16px; }
+    .screen.active { display: flex; }
+
+    h1 { margin: 8px 0 0; font-size: 1.8rem; text-align: center; }
+    .sub { margin: 0; text-align: center; color: var(--muted); }
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(29, 53, 87, .08);
+    }
+    .rules { margin: 0; padding-left: 1.2em; line-height: 1.6; }
+    .total-line { text-align: center; color: var(--muted); margin: 0; }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      border-radius: 14px;
+      touch-action: manipulation;
+    }
+    .primary {
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 16px;
+      width: 100%;
+    }
+    .primary:active { transform: scale(.98); }
+    .link {
+      background: none;
+      color: var(--muted);
+      text-decoration: underline;
+      padding: 8px;
+      font-size: .9rem;
+      align-self: center;
+    }
+
+    /* Partie */
+    .topbar { display: flex; justify-content: space-between; font-weight: 600; color: var(--muted); }
+    .timer { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .timer > div { height: 100%; width: 100%; background: var(--timer); border-radius: 99px; transform-origin: left; }
+    .flag-box { text-align: center; padding: 12px 0 4px; }
+    .flag {
+      font-family: "Drapeaux", "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
+      font-size: clamp(110px, 38vw, 170px);
+      line-height: 1;
+      display: inline-block;
+    }
+    .question { margin: 8px 0 0; text-align: center; font-size: 1.15rem; font-weight: 700; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choice {
+      background: var(--card);
+      color: var(--ink);
+      border: 2px solid var(--line);
+      padding: 14px 8px;
+      min-height: 64px;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .choice:disabled { cursor: default; }
+    .choice.good { background: var(--good); border-color: var(--good); color: #fff; }
+    .choice.bad { background: var(--bad); border-color: var(--bad); color: #fff; }
+    .feedback { min-height: 1.5em; text-align: center; font-weight: 700; margin: 0; }
+    .feedback.good { color: var(--good); }
+    .feedback.bad { color: var(--bad); }
+
+    /* Fin de ronde */
+    .big { font-size: 3.2rem; font-weight: 800; text-align: center; margin: 0; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { background: var(--bg); border-radius: 12px; padding: 12px; text-align: center; }
+    .stat b { display: block; font-size: 1.5rem; }
+    .stat span { color: var(--muted); font-size: .85rem; }
+    .recap { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .recap li { display: flex; align-items: center; gap: 10px; }
+    .recap .mini { font-family: "Drapeaux", "Apple Color Emoji", "Noto Color Emoji", sans-serif; font-size: 1.6rem; }
+    .recap .ok { color: var(--good); font-weight: 700; margin-left: auto; }
+    .recap .ko { color: var(--bad); font-weight: 700; margin-left: auto; }
+    .credit { text-align: center; font-size: .75rem; color: var(--muted); margin: 0; }
+    .credit a { color: inherit; }
+  </style>
+</head>
+<body>
+<main>
+  <!-- Accueil -->
+  <section id="accueil" class="screen active">
+    <h1>Le jeu des drapeaux</h1>
+    <p class="sub">À quel pays appartient ce drapeau ?</p>
+    <div class="card">
+      <ul class="rules">
+        <li>10 drapeaux par ronde</li>
+        <li>6 pays au choix pour chaque drapeau</li>
+        <li>5 secondes pour répondre</li>
+        <li>Tes bonnes réponses s'additionnent de ronde en ronde</li>
+      </ul>
+    </div>
+    <p class="total-line" id="accueil-total"></p>
+    <button class="primary" id="btn-jouer">Jouer</button>
+  </section>
+
+  <!-- Partie -->
+  <section id="partie" class="screen">
+    <div class="topbar">
+      <span id="num-question">Question 1/10</span>
+      <span id="score-ronde">Score : 0</span>
+    </div>
+    <div class="timer"><div id="barre"></div></div>
+    <div class="card flag-box">
+      <span class="flag" id="drapeau" role="img" aria-label="Drapeau à deviner"></span>
+      <p class="question">À quel pays appartient ce drapeau ?</p>
+    </div>
+    <div class="choices" id="choix"></div>
+    <p class="feedback" id="feedback"></p>
+  </section>
+
+  <!-- Fin de ronde -->
+  <section id="fin" class="screen">
+    <h1 id="fin-titre">Ronde terminée !</h1>
+    <div class="card">
+      <p class="big" id="fin-score">0/10</p>
+      <p class="sub" id="fin-message"></p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="total-bonnes">0</b><span>bonnes réponses au total</span></div>
+      <div class="stat"><b id="total-rondes">0</b><span>rondes jouées</span></div>
+    </div>
+    <button class="primary" id="btn-rejouer">Nouvelle ronde</button>
+    <div class="card">
+      <ul class="recap" id="recap"></ul>
+    </div>
+    <button class="link" id="btn-reset">Remettre le total à zéro</button>
+  </section>
+
+  <p class="credit">Drapeaux : <a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a>, licence CC-BY 4.0</p>
+</main>
+
+<script>
+  "use strict";
+
+  // Pays (code ISO à 2 lettres → nom en français).
+  // On évite les paires presque identiques (Tchad/Roumanie, Monaco/Indonésie…).
+  const PAYS = {
+    FR: "France", BE: "Belgique", CH: "Suisse", CA: "Canada", US: "États-Unis",
+    MX: "Mexique", BR: "Brésil", AR: "Argentine", CL: "Chili", CO: "Colombie",
+    PE: "Pérou", VE: "Venezuela", UY: "Uruguay", CU: "Cuba", JM: "Jamaïque",
+    HT: "Haïti", GB: "Royaume-Uni", IE: "Irlande", DE: "Allemagne", IT: "Italie",
+    ES: "Espagne", PT: "Portugal", NL: "Pays-Bas", LU: "Luxembourg", AT: "Autriche",
+    DK: "Danemark", SE: "Suède", NO: "Norvège", FI: "Finlande", IS: "Islande",
+    PL: "Pologne", CZ: "Tchéquie", HU: "Hongrie", RO: "Roumanie", GR: "Grèce",
+    HR: "Croatie", UA: "Ukraine", RU: "Russie", TR: "Turquie", MA: "Maroc",
+    DZ: "Algérie", TN: "Tunisie", EG: "Égypte", SN: "Sénégal", CI: "Côte d'Ivoire",
+    CM: "Cameroun", NG: "Nigeria", GH: "Ghana", KE: "Kenya", ZA: "Afrique du Sud",
+    MG: "Madagascar", CD: "Congo (RDC)", IL: "Israël", LB: "Liban", SA: "Arabie saoudite",
+    IN: "Inde", PK: "Pakistan", CN: "Chine", JP: "Japon", KR: "Corée du Sud",
+    VN: "Viêt Nam", TH: "Thaïlande", PH: "Philippines", ID: "Indonésie", AU: "Australie",
+    NZ: "Nouvelle-Zélande", NP: "Népal", BT: "Bhoutan", KZ: "Kazakhstan", IR: "Iran"
+  };
+  const CODES = Object.keys(PAYS);
+  const NB_QUESTIONS = 10;
+  const NB_CHOIX = 6;
+  const DUREE_MS = 5000;
+  const PAUSE_MS = 1300; // temps pour voir la bonne réponse
+  const CLE = "drapeaux-total-v1";
+
+  const $ = (id) => document.getElementById(id);
+
+  function emojiDrapeau(code) {
+    return String.fromCodePoint(...[...code].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65));
+  }
+
+  function melanger(liste) {
+    const a = liste.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Total cumulé, gardé sur l'appareil (si le navigateur le permet).
+  function lireTotal() {
+    try {
+      const t = JSON.parse(localStorage.getItem(CLE));
+      if (t && Number.isFinite(t.bonnes) && Number.isFinite(t.rondes)) return t;
+    } catch (e) { /* stockage indisponible */ }
+    return { bonnes: 0, rondes: 0 };
+  }
+  function ecrireTotal(t) {
+    try { localStorage.setItem(CLE, JSON.stringify(t)); } catch (e) { /* tant pis */ }
+  }
+  let total = lireTotal();
+
+  function montrer(id) {
+    document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("active", s.id === id));
+    window.scrollTo(0, 0);
+  }
+
+  function majAccueil() {
+    $("accueil-total").textContent = total.rondes
+      ? `Total : ${total.bonnes} bonnes réponses en ${total.rondes} ronde${total.rondes > 1 ? "s" : ""}`
+      : "";
+  }
+
+  // --- Ronde ---
+  let questions = [], index = 0, score = 0, resultats = [];
+  let minuteur = null, animation = null, verrou = false;
+
+  function nouvelleRonde() {
+    questions = melanger(CODES).slice(0, NB_QUESTIONS);
+    index = 0; score = 0; resultats = [];
+    montrer("partie");
+    poserQuestion();
+  }
+
+  function poserQuestion() {
+    verrou = false;
+    const bonne = questions[index];
+    const autres = melanger(CODES.filter((c) => c !== bonne)).slice(0, NB_CHOIX - 1);
+    const choix = melanger([bonne, ...autres]);
+
+    $("num-question").textContent = `Question ${index + 1}/${NB_QUESTIONS}`;
+    $("score-ronde").textContent = `Score : ${score}`;
+    $("drapeau").textContent = emojiDrapeau(bonne);
+    $("feedback").textContent = "";
+    $("feedback").className = "feedback";
+
+    const zone = $("choix");
+    zone.innerHTML = "";
+    choix.forEach((code) => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = PAYS[code];
+      b.dataset.code = code;
+      b.addEventListener("click", () => repondre(code));
+      zone.appendChild(b);
+    });
+
+    // Barre de temps
+    const barre = $("barre");
+    if (animation) animation.cancel();
+    animation = barre.animate(
+      [{ transform: "scaleX(1)" }, { transform: "scaleX(0)" }],
+      { duration: DUREE_MS, easing: "linear", fill: "forwards" }
+    );
+    clearTimeout(minuteur);
+    minuteur = setTimeout(() => repondre(null), DUREE_MS);
+  }
+
+  function repondre(code) {
+    if (verrou) return;
+    verrou = true;
+    clearTimeout(minuteur);
+    if (animation) animation.pause();
+
+    const bonne = questions[index];
+    const juste = code === bonne;
+    if (juste) score++;
+    resultats.push({ code: bonne, juste });
+
+    document.querySelectorAll(".choice").forEach((b) => {
+      b.disabled = true;
+      if (b.dataset.code === bonne) b.classList.add("good");
+      else if (b.dataset.code === code) b.classList.add("bad");
+    });
+    const fb = $("feedback");
+    if (juste) { fb.textContent = "Bravo !"; fb.className = "feedback good"; }
+    else if (code === null) { fb.textContent = `Temps écoulé ! C'était : ${PAYS[bonne]}`; fb.className = "feedback bad"; }
+    else { fb.textContent = `Raté ! C'était : ${PAYS[bonne]}`; fb.className = "feedback bad"; }
+    $("score-ronde").textContent = `Score : ${score}`;
+
+    setTimeout(() => {
+      index++;
+      if (index < NB_QUESTIONS) poserQuestion();
+      else finRonde();
+    }, PAUSE_MS);
+  }
+
+  function finRonde() {
+    total = { bonnes: total.bonnes + score, rondes: total.rondes + 1 };
+    ecrireTotal(total);
+
+    $("fin-score").textContent = `${score}/${NB_QUESTIONS}`;
+    $("fin-message").textContent =
+      score === 10 ? "Parfait, aucune erreur !" :
+      score >= 8 ? "Excellent !" :
+      score >= 5 ? "Bien joué !" :
+      "Continue, tu vas t'améliorer !";
+    $("total-bonnes").textContent = total.bonnes;
+    $("total-rondes").textContent = total.rondes;
+
+    const recap = $("recap");
+    recap.innerHTML = "";
+    resultats.forEach((r) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="mini"></span><span></span><span class="${r.juste ? "ok" : "ko"}">${r.juste ? "✓" : "✗"}</span>`;
+      li.children[0].textContent = emojiDrapeau(r.code);
+      li.children[1].textContent = PAYS[r.code];
+      recap.appendChild(li);
+    });
+    montrer("fin");
+  }
+
+  $("btn-jouer").addEventListener("click", nouvelleRonde);
+  $("btn-rejouer").addEventListener("click", nouvelleRonde);
+  $("btn-reset").addEventListener("click", () => {
+    total = { bonnes: 0, rondes: 0 };
+    ecrireTotal(total);
+    $("total-bonnes").textContent = 0;
+    $("total-rondes").textContent = 0;
+    majAccueil();
+  });
+
+  majAccueil();
+</script>
+</body>
+</html>
