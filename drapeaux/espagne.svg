@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 390">
+  <!-- Drapeau de l'Espagne (bandes 1:2:1, armoiries simplifiées côté mât) -->
+  <defs>
+    <clipPath id="coins"><rect width="540" height="390" rx="42"/></clipPath>
+  </defs>
+  <g clip-path="url(#coins)">
+    <rect width="540" height="390" fill="#c60b1e"/>
+    <rect y="97.5" width="540" height="195" fill="#ffc400"/>
+
+    <!-- Colonnes d'Hercule -->
+    <g stroke="#7a5b00" stroke-width="2">
+      <!-- gauche -->
+      <rect x="122" y="150" width="20" height="92" fill="#e8e8e8"/>
+      <rect x="116" y="242" width="32" height="10" fill="#d4a017"/>
+      <rect x="112" y="252" width="40" height="8" fill="#d4a017"/>
+      <rect x="116" y="140" width="32" height="10" fill="#d4a017"/>
+      <path d="M118 140 l4 -16 l6 8 l4 -12 l4 12 l6 -8 l4 16z" fill="#d4a017"/>
+      <!-- droite -->
+      <rect x="248" y="150" width="20" height="92" fill="#e8e8e8"/>
+      <rect x="242" y="242" width="32" height="10" fill="#d4a017"/>
+      <rect x="238" y="252" width="40" height="8" fill="#d4a017"/>
+      <rect x="242" y="140" width="32" height="10" fill="#d4a017"/>
+      <path d="M244 140 l4 -16 l6 8 l4 -12 l4 12 l6 -8 l4 16z" fill="#d4a017"/>
+    </g>
+    <!-- Rubans PLUS ULTRA -->
+    <path d="M108 196 q24 -12 48 0 v14 q-24 -12 -48 0z" fill="#c60b1e" stroke="#7a5b00" stroke-width="2"/>
+    <path d="M234 196 q24 -12 48 0 v14 q-24 -12 -48 0z" fill="#c60b1e" stroke="#7a5b00" stroke-width="2"/>
+
+    <!-- Couronne royale -->
+    <g stroke="#7a5b00" stroke-width="2">
+      <path d="M160 132 q35 -36 70 0z" fill="#c60b1e"/>
+      <path d="M158 134 l6 -26 l14 14 l17 -24 l17 24 l14 -14 l6 26z" fill="#d4a017"/>
+      <rect x="156" y="132" width="78" height="12" rx="3" fill="#d4a017"/>
+      <circle cx="195" cy="86" r="5" fill="#d4a017"/>
+    </g>
+
+    <!-- Écu -->
+    <g stroke="#7a5b00" stroke-width="2">
+      <clipPath id="ecu"><path d="M158 148 h74 v62 a37 40 0 0 1 -74 0z"/></clipPath>
+      <g clip-path="url(#ecu)">
+        <!-- Castille -->
+        <rect x="158" y="148" width="37" height="42" fill="#c60b1e" stroke="none"/>
+        <path d="M166 182 v-16 h4 v4 h4 v-6 h5 v-4 h4 v4 h5 v6 h4 v-4 h4 v16z" fill="#ffc400" stroke="none"/>
+        <!-- León -->
+        <rect x="195" y="148" width="37" height="42" fill="#f4f4f4" stroke="none"/>
+        <path d="M204 184 l2 -14 q-4 -8 4 -12 q2 -6 8 -2 q6 2 2 8 l4 4 l-6 2 l2 14z" fill="#8b1e8f" stroke="none"/>
+        <!-- Aragon -->
+        <rect x="158" y="190" width="37" height="44" fill="#ffc400" stroke="none"/>
+        <rect x="163" y="190" width="5" height="44" fill="#c60b1e" stroke="none"/>
+        <rect x="172" y="190" width="5" height="44" fill="#c60b1e" stroke="none"/>
+        <rect x="181" y="190" width="5" height="44" fill="#c60b1e" stroke="none"/>
+        <rect x="190" y="190" width="5" height="44" fill="#c60b1e" stroke="none"/>
+        <!-- Navarre -->
+        <rect x="195" y="190" width="37" height="44" fill="#c60b1e" stroke="none"/>
+        <path d="M199 194 l29 36 M228 194 l-29 36 M213.5 192 v40 M197 212 h33" stroke="#ffc400" stroke-width="3"/>
+        <!-- Grenade -->
+        <path d="M180 234 h30 v10 a15 16 0 0 1 -30 0z" fill="#f4f4f4" stroke="none"/>
+        <circle cx="195" cy="242" r="5" fill="#c60b1e" stroke="none"/>
+        <path d="M195 237 v-4" stroke="#2a8a2a" stroke-width="2"/>
+      </g>
+      <path d="M158 148 h74 v62 a37 40 0 0 1 -74 0z" fill="none"/>
+      <!-- Écusson central (Bourbon) -->
+      <ellipse cx="195" cy="190" rx="10" ry="12" fill="#1a3d9e" stroke="#c60b1e" stroke-width="3"/>
+      <circle cx="195" cy="190" r="2.5" fill="#ffc400" stroke="none"/>
+    </g>
+  </g>
+</svg>

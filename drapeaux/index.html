@@ -86,6 +86,7 @@
       line-height: 1;
       display: inline-block;
     }
+    .flag img, .recap .mini img { height: .72em; width: auto; vertical-align: middle; display: inline-block; }
     .question { margin: 8px 0 0; text-align: center; font-size: 1.15rem; font-weight: 700; }
     .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .choice {
@@ -130,7 +131,7 @@
       <ul class="rules">
         <li>10 drapeaux par ronde</li>
         <li>6 pays au choix pour chaque drapeau</li>
-        <li>5 secondes pour répondre</li>
+        <li>7 secondes pour répondre</li>
         <li>Tes bonnes réponses s'additionnent de ronde en ronde</li>
       </ul>
     </div>
@@ -192,13 +193,13 @@
     CM: "Cameroun", NG: "Nigeria", GH: "Ghana", KE: "Kenya", ZA: "Afrique du Sud",
     MG: "Madagascar", CD: "Congo (RDC)", IL: "Israël", LB: "Liban", SA: "Arabie saoudite",
     IN: "Inde", PK: "Pakistan", CN: "Chine", JP: "Japon", KR: "Corée du Sud",
-    VN: "Viêt Nam", TH: "Thaïlande", PH: "Philippines", ID: "Indonésie", AU: "Australie",
+    VN: "Vietnam", TH: "Thaïlande", PH: "Philippines", ID: "Indonésie", AU: "Australie",
     NZ: "Nouvelle-Zélande", NP: "Népal", BT: "Bhoutan", KZ: "Kazakhstan", IR: "Iran"
   };
   const CODES = Object.keys(PAYS);
   const NB_QUESTIONS = 10;
   const NB_CHOIX = 6;
-  const DUREE_MS = 5000;
+  const DUREE_MS = 7000;
   const PAUSE_MS = 1300; // temps pour voir la bonne réponse
   const CLE = "drapeaux-total-v1";
 
@@ -206,6 +207,21 @@
 
   function emojiDrapeau(code) {
     return String.fromCodePoint(...[...code].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65));
+  }
+
+  // Drapeaux redessinés quand la version Twemoji est trop simplifiée.
+  const IMAGES = { ES: "espagne.svg" };
+
+  function afficherDrapeau(el, code) {
+    if (IMAGES[code]) {
+      el.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = IMAGES[code];
+      img.alt = "";
+      el.appendChild(img);
+    } else {
+      el.textContent = emojiDrapeau(code);
+    }
   }
 
   function melanger(liste) {
@@ -260,7 +276,7 @@
 
     $("num-question").textContent = `Question ${index + 1}/${NB_QUESTIONS}`;
     $("score-ronde").textContent = `Score : ${score}`;
-    $("drapeau").textContent = emojiDrapeau(bonne);
+    afficherDrapeau($("drapeau"), bonne);
     $("feedback").textContent = "";
     $("feedback").className = "feedback";
 
@@ -333,7 +349,7 @@
     resultats.forEach((r) => {
       const li = document.createElement("li");
       li.innerHTML = `<span class="mini"></span><span></span><span class="${r.juste ? "ok" : "ko"}">${r.juste ? "✓" : "✗"}</span>`;
-      li.children[0].textContent = emojiDrapeau(r.code);
+      afficherDrapeau(li.children[0], r.code);
       li.children[1].textContent = PAYS[r.code];
       recap.appendChild(li);
     });
@@ -350,6 +366,7 @@
     majAccueil();
   });
 
+  Object.values(IMAGES).forEach((src) => { new Image().src = src; }); // préchargement
   majAccueil();
 </script>
 </body>
