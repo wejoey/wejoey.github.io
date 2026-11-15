@@ -113,6 +113,7 @@ html, body {
 .score { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
 .score-value { font-size: clamp(3.5rem, 18vw, 6rem); font-weight: 900; line-height: 1; }
 .score-label { color: var(--muted); font-size: 1rem; }
+.score-total { color: var(--text); font-weight: 700; font-size: 1.15rem; }
 
 .start {
   border: 0;
