@@ -5,13 +5,30 @@
   const SHOW_MS = 3000;      // durée d'affichage du nombre
   const FEEDBACK_MS = 700;   // durée du ✓ / ✗ avant la question suivante
 
+  function isPrime(n) {
+    if (n < 2) return false;
+    for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+    return true;
+  }
+
+  // Les rondes s'enchaînent dans cet ordre.
+  const ROUNDS = [
+    { question: "Est-ce que le nombre est pair&nbsp;?", test: (n) => n % 2 === 0 },
+    { question: "Est-ce que le nombre est divisible par 3&nbsp;?", test: (n) => n % 3 === 0 },
+    { question: "Est-ce que le nombre est premier&nbsp;?", test: isPrime },
+  ];
+
   const $ = (id) => document.getElementById(id);
   const btnNo = $("btn-no");
   const btnYes = $("btn-yes");
   const stage = $("stage");
   const timer = $("timer");
   const dots = $("dots");
+  const roundLabel = $("round");
+  const questionEl = $("question");
 
+  let roundIndex = 0;
+  let totalScore = 0;
   let numbers = [];
   let index = 0;
   let score = 0;
@@ -48,7 +65,15 @@
     timer.style.width = "0";
   }
 
+  function startGame() {
+    roundIndex = 0;
+    totalScore = 0;
+    startRound();
+  }
+
   function startRound() {
+    roundLabel.textContent = `Ronde ${roundIndex + 1}`;
+    questionEl.innerHTML = ROUNDS[roundIndex].question;
     numbers = pickNumbers(QUESTIONS);
     index = 0;
     score = 0;
@@ -73,15 +98,14 @@
     }, SHOW_MS);
   }
 
-  function answer(saysEven) {
+  function answer(saysYes) {
     if (!accepting) return;
     accepting = false;
     clearTimeout(hideTimeout);
     stopTimer();
     setBars(false);
 
-    const isEven = numbers[index] % 2 === 0;
-    const correct = saysEven === isEven;
+    const correct = saysYes === ROUNDS[roundIndex].test(numbers[index]);
     if (correct) score++;
 
     const dot = dots.children[index];
@@ -97,14 +121,25 @@
     }, FEEDBACK_MS);
   }
 
+  function plural(n) {
+    return `bonne${n > 1 ? "s" : ""} réponse${n > 1 ? "s" : ""}`;
+  }
+
   function showScore() {
+    totalScore += score;
+    const last = roundIndex === ROUNDS.length - 1;
+    const max = QUESTIONS * ROUNDS.length;
     stage.innerHTML = `
       <div class="score">
         <div class="score-value">${score} / ${QUESTIONS}</div>
-        <div class="score-label">bonne${score > 1 ? "s" : ""} réponse${score > 1 ? "s" : ""}</div>
-        <button class="start" id="btn-restart" type="button">Rejouer</button>
+        <div class="score-label">${plural(score)} à la ronde ${roundIndex + 1}</div>
+        ${last ? `<div class="score-label score-total">Total : ${totalScore} / ${max}</div>` : ""}
+        <button class="start" id="btn-next" type="button">${last ? "Rejouer" : "Ronde suivante"}</button>
       </div>`;
-    $("btn-restart").addEventListener("click", startRound);
+    $("btn-next").addEventListener("click", () => {
+      if (last) startGame();
+      else { roundIndex++; startRound(); }
+    });
   }
 
   // pointerdown = réaction immédiate au toucher (pas de délai de "click")
@@ -127,7 +162,7 @@
 
   bind(btnNo, false);
   bind(btnYes, true);
-  $("btn-start").addEventListener("click", startRound);
+  $("btn-start").addEventListener("click", startGame);
 
   // Clavier (pratique pour tester sur ordinateur) : ← = NON, → = OUI
   document.addEventListener("keydown", (e) => {
