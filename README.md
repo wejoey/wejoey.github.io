@@ -2,7 +2,7 @@
 
 Petits jeux mobiles en HTML/CSS/JS, sans dépendances.
 
-- [Oui ou Non](https://wejoey.github.io/math/) (`math/`) : le nombre est-il pair ? 5 nombres, 3 secondes chacun.
+- [Oui ou Non](https://wejoey.github.io/math/) (`math/`) : le nombre est-il pair ? 5 nombres, chacun affiché 3 secondes (réponse possible ensuite).
 - [Le jeu des drapeaux](https://wejoey.github.io/drapeaux/) (`drapeaux/`) : 10 drapeaux, 6 choix, 7 secondes chacun.
 
 ## Tester en local

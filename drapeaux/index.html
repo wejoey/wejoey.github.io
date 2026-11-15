@@ -75,6 +75,8 @@
       align-self: center;
     }
 
+    .home { color: var(--muted); font-size: .9rem; align-self: flex-start; }
+
     /* Partie */
     .topbar { display: flex; justify-content: space-between; font-weight: 600; color: var(--muted); }
     .timer { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
@@ -125,6 +127,7 @@
 <main>
   <!-- Accueil -->
   <section id="accueil" class="screen active">
+    <a class="home" href="../">← Accueil</a>
     <h1>Le jeu des drapeaux</h1>
     <p class="sub">À quel pays appartient ce drapeau ?</p>
     <div class="card">
@@ -170,6 +173,7 @@
       <ul class="recap" id="recap"></ul>
     </div>
     <button class="link" id="btn-reset">Remettre le total à zéro</button>
+    <a class="home" href="../">← Accueil</a>
   </section>
 
   <p class="credit">Drapeaux : <a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC-BY 4.0</a></p>

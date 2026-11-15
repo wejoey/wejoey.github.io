@@ -69,6 +69,13 @@ html, body {
   min-width: 0;
 }
 
+.home {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.home:hover, .home:focus-visible { color: var(--text); text-decoration: underline; }
+
 .round {
   color: var(--accent);
   font-weight: 700;

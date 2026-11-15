@@ -115,6 +115,10 @@
       btn.classList.add("pressed");
       answer(value);
     });
+    // Entrée / Espace sur une barre focalisée : click sans pointeur (detail === 0)
+    btn.addEventListener("click", (e) => {
+      if (e.detail === 0 && !btn.disabled) answer(value);
+    });
     const release = () => btn.classList.remove("pressed");
     btn.addEventListener("pointerup", release);
     btn.addEventListener("pointercancel", release);
