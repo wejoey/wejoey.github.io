@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Oui ou Non</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game">
+    <button class="bar bar-no" id="btn-no" type="button" aria-label="Non" disabled>
+      <span>NON</span>
+    </button>
+
+    <section class="center" aria-live="polite">
+      <p class="round" id="round">Ronde 1</p>
+      <h1 class="question" id="question">Est-ce que le nombre est pair&nbsp;?</h1>
+
+      <div class="stage" id="stage">
+        <button class="start" id="btn-start" type="button">Commencer</button>
+      </div>
+
+      <div class="timer" aria-hidden="true"><div class="timer-fill" id="timer"></div></div>
+      <ol class="dots" id="dots" aria-label="Progression"></ol>
+    </section>
+
+    <button class="bar bar-yes" id="btn-yes" type="button" aria-label="Oui" disabled>
+      <span>OUI</span>
+    </button>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>

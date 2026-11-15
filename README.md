@@ -1,7 +1,14 @@
-# Oui ou Non
+# wejoey.github.io
 
-Petit jeu mobile : une question au centre, la barre de gauche répond **NON**, la barre de droite répond **OUI**.
+Petits jeux mobiles en HTML/CSS/JS, sans dépendances.
 
-**Ronde 1 — « Est-ce que le nombre est pair ? »** : 5 nombres différents entre 0 et 99, chacun affiché 3 secondes, puis le score s'affiche.
+- [Oui ou Non](https://wejoey.github.io/math/) (`math/`) : le nombre est-il pair ? 5 nombres, 3 secondes chacun.
+- [Le jeu des drapeaux](https://wejoey.github.io/drapeaux/) (`drapeaux/`) : 10 drapeaux, 6 choix, 7 secondes chacun.
 
-Jouer : https://wejoey.github.io
+## Tester en local
+
+```bash
+python3 -m http.server 8088
+```
+
+Puis ouvrir <http://localhost:8088>.
