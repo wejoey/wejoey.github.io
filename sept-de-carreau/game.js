@@ -58,6 +58,7 @@
       row.appendChild(head);
       const r0 = board[s];
       const aceGone = R.aceUsed(r0);
+      const side = R.aceSide(board); // côté choisi par l'As♦, pour toutes les couleurs
       for (let pos = 0; pos <= ACE_HIGH; pos++) {
         const slot = document.createElement("span");
         slot.className = "slot";
@@ -68,8 +69,9 @@
           if (lastPlayed && lastPlayed.s === s && lastPlayed.pos === pos) slot.classList.add("just");
         } else if (pos === SEVEN) {
           slot.classList.add("seven");
-        } else if ((pos === 0 || pos === ACE_HIGH) && aceGone) {
-          slot.classList.add("gone"); // l'As est déjà posé de l'autre côté
+        } else if ((pos === 0 || pos === ACE_HIGH) &&
+                   (aceGone || (side === "low" && pos === ACE_HIGH) || (side === "high" && pos === 0))) {
+          slot.classList.add("gone"); // l'As est déjà posé, ou il va de l'autre côté
         } else if (r0 && (pos === r0.low - 1 || pos === r0.high + 1)) {
           slot.classList.add("next");
         }

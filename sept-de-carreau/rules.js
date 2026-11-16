@@ -6,7 +6,9 @@
 // - Celui qui a le 7♦ commence en le posant.
 // - À son tour, on pose un 7 (nouvelle rangée) ou une carte qui suit une
 //   rangée en montant (8, 9… Roi) ou en descendant (6, 5… 2).
-// - Variante : l'As se pose soit sous le 2, soit au-dessus du Roi.
+// - Variante de l'As : l'As♦ se pose soit sous le 2♦, soit au-dessus du Roi♦.
+//   Son côté décide pour les autres As : ils se posent tous du même côté,
+//   et seulement après l'As♦.
 // - On passe seulement si on ne peut rien poser.
 // - Le premier qui n'a plus de cartes gagne.
 (function (root) {
@@ -56,6 +58,12 @@
   }
 
   const aceUsed = (row) => !!row && (row.low === 0 || row.high === ACE_HIGH);
+  // Côté choisi par l'As♦ : "low" (sous le 2), "high" (au-dessus du Roi) ou null.
+  function aceSide(board) {
+    const row = board[DIAMONDS];
+    if (!aceUsed(row)) return null;
+    return row.low === 0 ? "low" : "high";
+  }
   const isSevenOfDiamonds = (c) => c.s === DIAMONDS && c.r === SEVEN;
   const startingPlayer = (hands) => hands.findIndex((h) => h.some(isSevenOfDiamonds));
   const emptyBoard = () => [null, null, null, null];
@@ -67,8 +75,10 @@
     if (!row) return c.r === SEVEN ? SEVEN : null;
     if (c.r === ACE) {
       if (aceUsed(row)) return null;            // l'As est déjà posé
-      if (row.low === 1) return 0;              // As sous le 2
-      if (row.high === KING) return ACE_HIGH;   // As au-dessus du Roi
+      const side = c.s === DIAMONDS ? null : aceSide(board);
+      if (c.s !== DIAMONDS && !side) return null; // on attend l'As♦
+      if (row.low === 1 && side !== "high") return 0;            // As sous le 2
+      if (row.high === KING && side !== "low") return ACE_HIGH;  // As au-dessus du Roi
       return null;
     }
     if (c.r === row.low - 1 || c.r === row.high + 1) return c.r;
@@ -118,7 +128,7 @@
   const Rules = {
     SUITS, RANKS, ACE, KING, SEVEN, DIAMONDS, ACE_HIGH, MIN_BOTS, MAX_BOTS,
     newDeck, shuffle, sortHand, deal, startingPlayer, emptyBoard,
-    targetPos, canPlay, playableCards, placeCard, removeCard, aceUsed,
+    targetPos, canPlay, playableCards, placeCard, removeCard, aceUsed, aceSide,
     botScore, botChoose, label,
   };
 

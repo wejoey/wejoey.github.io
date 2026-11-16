@@ -66,38 +66,62 @@ test("on monte et on descend une rangée une carte à la fois", () => {
   assert.ok(R.canPlay(board, card("9", D), false));
 });
 
-function rowFrom(low, high) {
-  // Rangée de ♥ déjà posée de la position `low` à `high` (1 = le 2, 12 = le Roi).
+function rowFrom(low, high, suit = 1) {
+  // Rangée déjà posée de la position `low` à `high` (1 = le 2, 12 = le Roi),
+  // par défaut en ♥.
   const board = R.emptyBoard();
-  board[1] = { low, high };
+  board[suit] = { low, high };
   return board;
 }
 
-test("l'As n'est pas jouable tant qu'il n'y a ni 2 ni Roi", () => {
-  assert.equal(R.targetPos(rowFrom(2, 11), card("A", H), false), null);
+test("l'As♦ n'est pas jouable tant qu'il n'y a ni 2♦ ni Roi♦", () => {
+  assert.equal(R.targetPos(rowFrom(2, 11, 2), card("A", D), false), null);
 });
 
-test("l'As se pose sous le 2", () => {
-  const board = rowFrom(1, 9);
+test("l'As♦ se pose sous le 2♦", () => {
+  const board = rowFrom(1, 9, 2);
+  assert.equal(R.targetPos(board, card("A", D), false), 0);
+  R.placeCard(board, card("A", D), false);
+  assert.deepEqual(board[2], { low: 0, high: 9 });
+  assert.equal(R.aceSide(board), "low");
+});
+
+test("l'As♦ se pose au-dessus du Roi♦", () => {
+  const board = rowFrom(4, 12, 2);
+  assert.equal(R.targetPos(board, card("A", D), false), R.ACE_HIGH);
+  R.placeCard(board, card("A", D), false);
+  assert.deepEqual(board[2], { low: 4, high: R.ACE_HIGH });
+  assert.equal(R.aceSide(board), "high");
+});
+
+test("les autres As attendent l'As♦", () => {
+  const board = rowFrom(1, 12); // ♥ complet du 2 au Roi
+  board[2] = { low: 3, high: 9 }; // As♦ pas encore posé
+  assert.equal(R.aceSide(board), null);
+  assert.equal(R.targetPos(board, card("A", H), false), null);
+});
+
+test("As♦ sous le 2 : les autres As vont seulement sous le 2", () => {
+  const board = rowFrom(1, 12); // ♥ du 2 au Roi
+  board[2] = { low: 0, high: 9 }; // As♦ sous le 2♦
   assert.equal(R.targetPos(board, card("A", H), false), 0);
-  R.placeCard(board, card("A", H), false);
-  assert.deepEqual(board[1], { low: 0, high: 9 });
-  assert.ok(R.aceUsed(board[1]));
+  board[1] = { low: 3, high: 12 }; // ♥ du 4 au Roi : pas encore de 2♥
+  assert.equal(R.targetPos(board, card("A", H), false), null);
 });
 
-test("l'As se pose au-dessus du Roi", () => {
-  const board = rowFrom(4, 12);
+test("As♦ au-dessus du Roi : les autres As vont seulement au-dessus du Roi", () => {
+  const board = rowFrom(1, 12); // ♥ du 2 au Roi
+  board[2] = { low: 4, high: R.ACE_HIGH }; // As♦ au-dessus du Roi♦
   assert.equal(R.targetPos(board, card("A", H), false), R.ACE_HIGH);
-  R.placeCard(board, card("A", H), false);
-  assert.deepEqual(board[1], { low: 4, high: R.ACE_HIGH });
-  assert.ok(R.aceUsed(board[1]));
+  board[1] = { low: 1, high: 10 }; // ♥ du 2 au Valet : pas encore de Roi♥
+  assert.equal(R.targetPos(board, card("A", H), false), null);
 });
 
 test("après un As en haut, le 2 reste jouable mais plus rien sous le 2", () => {
-  const board = rowFrom(2, R.ACE_HIGH); // du 3 au Roi, As en haut
-  assert.ok(R.canPlay(board, card("2", H), false));
-  R.placeCard(board, card("2", H), false);
-  assert.equal(R.targetPos(board, card("A", H), false), null);
+  const board = rowFrom(2, R.ACE_HIGH, 2); // du 3♦ au Roi♦, As♦ en haut
+  assert.ok(R.canPlay(board, card("2", D), false));
+  R.placeCard(board, card("2", D), false);
+  assert.equal(R.targetPos(board, card("A", D), false), null);
 });
 
 test("poser une carte non jouable lève une erreur", () => {
