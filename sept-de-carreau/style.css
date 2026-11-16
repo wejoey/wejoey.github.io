@@ -124,7 +124,6 @@ html, body {
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
 }
-.hand.big { grid-template-columns: repeat(9, 1fr); gap: 4px; }
 .card {
   aspect-ratio: 5 / 7;
   border: 0;
@@ -154,3 +153,40 @@ html, body {
 .card:disabled { cursor: default; }
 /* Choisir la carte à donner à un bot */
 .card.give { box-shadow: 0 0 0 3px #f97316, 0 4px 8px rgba(0, 0, 0, 0.4); }
+
+/* Colonnes : invisibles en portrait (tout reste empilé) */
+.col { display: contents; }
+
+/* ---------- Téléphone en paysage : table à gauche, main à droite ---------- */
+@media (orientation: landscape) and (max-height: 540px) {
+  .game {
+    max-width: none;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .col-table { flex: 1.1; }
+  .col-hand { flex: 1; }
+  .top h1 { font-size: 1rem; }
+  .bot { padding: 4px; }
+  .bot-name { font-size: 0.85rem; }
+  .bots { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+  .board { padding: 6px 4px; gap: 4px; }
+  .slot { aspect-ratio: 5 / 6; }
+  .status { min-height: 0; }
+  .actions { min-height: 0; }
+  .hand-zone { margin-top: 0; }
+  .hand { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; }
+  .card { font-size: 1rem; }
+}
+
+/* ---------- Petits téléphones en portrait (ex. iPhone SE) ---------- */
+@media (orientation: portrait) and (max-height: 640px) {
+  .game { gap: 8px; }
+  .bot { padding: 4px; }
+  .status { min-height: 0; }
+  .card { aspect-ratio: 5 / 6; }
+}

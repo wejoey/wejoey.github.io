@@ -88,7 +88,6 @@
     const h = hands[0] || [];
     const myTurn = current === 0 && !over && giveTo === null;
     const giving = giveTo !== null && !over;
-    handEl.classList.toggle("big", h.length > 14);
     h.forEach((c) => {
       const b = document.createElement("button");
       b.type = "button";

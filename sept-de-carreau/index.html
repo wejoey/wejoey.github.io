@@ -10,6 +10,8 @@
 </head>
 <body>
   <main class="game">
+    <!-- En portrait tout est empilé ; en paysage : table à gauche, main à droite -->
+    <div class="col col-table">
     <header class="top">
       <a class="home" href="../">← Accueil</a>
       <h1>Le 7 de carreau</h1>
@@ -20,6 +22,9 @@
 
     <!-- La table : une rangée par couleur, de l’As (bas) au Roi puis l’As (haut) -->
     <section class="board" id="board" aria-label="Table"></section>
+    </div>
+
+    <div class="col col-hand">
 
     <p class="status" id="status" aria-live="polite"></p>
 
@@ -38,6 +43,7 @@
       <p class="hand-title">Ta main <span id="hand-count"></span></p>
       <div class="hand" id="hand" aria-label="Ta main"></div>
     </section>
+    </div>
   </main>
 
   <script src="rules.js"></script>
