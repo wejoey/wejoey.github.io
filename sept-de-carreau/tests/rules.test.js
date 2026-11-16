@@ -152,10 +152,39 @@ test("le bot préfère la carte qui libère ses autres cartes", () => {
   }
 });
 
-test("le bot compte l'As quand il monte vers le Roi", () => {
-  const hand = [card("D", H), card("A", H)];
-  assert.equal(R.botScore(hand, card("D", H)), 1);
-  assert.equal(R.botScore(hand, card("A", H)), 0);
+test("le bot compte l'As seulement du côté choisi par l'As♦", () => {
+  const hand = [card("D", H), card("A", H), card("3", H)];
+  const board = R.emptyBoard();
+  // As♦ pas encore posé : l'As peut finir des deux côtés.
+  assert.equal(R.botScore(hand, card("D", H), board), 1);
+  assert.equal(R.botScore(hand, card("A", H), board), 0);
+  board[2] = { low: 4, high: R.ACE_HIGH }; // As♦ au-dessus du Roi
+  assert.equal(R.botScore(hand, card("D", H), board), 1, "l'As♥ ira au-dessus du Roi");
+  assert.equal(R.botScore(hand, card("4", H), board), 1, "seul le 3♥ compte, pas l'As");
+  board[2] = { low: 0, high: 9 };          // As♦ sous le 2
+  assert.equal(R.botScore(hand, card("D", H), board), 0, "l'As♥ n'ira pas en haut");
+  assert.equal(R.botScore(hand, card("4", H), board), 2, "3♥ et As♥");
+});
+
+test("les carreaux valent plus pour le bot", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  R.placeCard(board, card("7", S), false);
+  // 6♠ libère 5♠ (1) ; 8♦ libère 9♦ (2) : le bot pose le 8♦.
+  const hand = [card("5", S), card("6", S), card("8", D), card("9", D)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand, false, seeded(i)), card("8", D));
+  // À égalité (rien de libéré), il préfère poser un carreau.
+  const hand2 = [card("6", S), card("8", D)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand2, false, seeded(i)), card("8", D));
+});
+
+test("à distance égale, le bot garde ses carreaux et donne une autre carte", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  R.placeCard(board, card("7", C), false);
+  // R♦ et R♣ sont tous les deux à 5 cartes d'être jouables.
+  const hand = [card("R", D), card("R", C)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.worstCard(board, hand, seeded(i)), card("R", C));
 });
 
 test("un joueur qui peut jouer est obligé de jouer : il ne peut pas demander de carte", () => {

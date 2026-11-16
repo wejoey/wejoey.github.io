@@ -110,20 +110,31 @@
     hand.splice(i, 1);
   }
 
+  // Les carreaux valent plus que les autres cartes pour les bots :
+  // c'est la couleur du 7♦ et c'est l'As♦ qui décide du côté des As.
+  const DIAMOND_WEIGHT = 2;
+  const cardValue = (c) => (c.s === DIAMONDS ? DIAMOND_WEIGHT : 1);
+
   // Stratégie des bots : poser la carte qui « libère » le plus de cartes de
-  // sa propre main dans la même direction ; égalités départagées au hasard.
-  function botScore(hand, c) {
+  // sa propre main dans la même direction (un carreau libéré compte double),
+  // en préférant poser un carreau à égalité ; sinon au hasard.
+  // Un As ne compte que s'il pourra aller de ce côté (côté de l'As♦).
+  function botScore(hand, c, board = emptyBoard()) {
     if (c.r === ACE) return 0;
-    const same = hand.filter((x) => x.s === c.s && !(x.r === c.r));
-    if (c.r === SEVEN) return same.length;
-    if (c.r > SEVEN) return same.filter((x) => x.r > c.r || x.r === ACE).length;
-    return same.filter((x) => x.r < c.r).length;
+    const side = c.s === DIAMONDS ? null : aceSide(board);
+    const same = hand.filter((x) => x.s === c.s && x.r !== c.r);
+    let freed;
+    if (c.r === SEVEN) freed = same;
+    else if (c.r > SEVEN) freed = same.filter((x) => x.r > c.r || (x.r === ACE && side !== "low"));
+    else freed = same.filter((x) => x.r < c.r && (x.r !== ACE || side !== "high"));
+    const bonus = c.s === DIAMONDS ? 0.5 : 0;
+    return freed.reduce((n, x) => n + cardValue(x), 0) + bonus;
   }
 
   function botChoose(board, hand, firstMove, rnd = Math.random) {
     const opts = shuffle(playableCards(board, hand, firstMove), rnd);
     if (!opts.length) return null;
-    opts.sort((a, b) => botScore(hand, b) - botScore(hand, a));
+    opts.sort((a, b) => botScore(hand, b, board) - botScore(hand, a, board));
     return opts[0];
   }
 
@@ -153,10 +164,10 @@
   }
 
   // Carte qu'un bot donne quand on lui en demande une : la plus loin d'être
-  // jouable ; égalités départagées au hasard.
+  // jouable ; à égalité il garde ses carreaux (ils valent plus), puis au hasard.
   function worstCard(board, hand, rnd = Math.random) {
     const opts = shuffle(hand.slice(), rnd);
-    opts.sort((a, b) => distance(board, b) - distance(board, a));
+    opts.sort((a, b) => distance(board, b) - distance(board, a) || cardValue(a) - cardValue(b));
     return opts[0] || null;
   }
 
@@ -173,7 +184,7 @@
     SUITS, RANKS, ACE, KING, SEVEN, DIAMONDS, ACE_HIGH, MIN_BOTS, MAX_BOTS,
     newDeck, shuffle, sortHand, deal, startingPlayer, emptyBoard,
     targetPos, canPlay, playableCards, placeCard, removeCard, aceUsed, aceSide,
-    botScore, botChoose, label,
+    botScore, botChoose, label, cardValue,
     mustPlay, canAsk, previousPlayer, distance, worstCard, giveCard,
   };
 

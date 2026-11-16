@@ -13,7 +13,10 @@
     <!-- En portrait tout est empilé ; en paysage : table à gauche, main à droite -->
     <div class="col col-table">
     <header class="top">
-      <a class="home" href="../">← Accueil</a>
+      <nav class="links">
+        <a class="home" href="../">← Accueil</a>
+        <button class="link" id="btn-rules" type="button">Règles</button>
+      </nav>
       <h1>Le 7 de carreau</h1>
     </header>
 
@@ -32,6 +35,8 @@
     <section class="setup" id="setup">
       <p class="setup-title">Contre combien de bots veux-tu jouer&nbsp;?</p>
       <div class="choices" id="bot-choices"></div>
+      <p class="score" id="score"></p>
+      <button class="link" id="btn-speed" type="button">Bots : vitesse normale</button>
     </section>
 
     <div class="actions">
@@ -45,6 +50,21 @@
     </section>
     </div>
   </main>
+
+  <!-- Résumé des règles -->
+  <dialog class="rules" id="rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">Règles du 7 de carreau</h2>
+    <ul>
+      <li>On joue avec 52 cartes, sans jokers, toi contre 1 à 5 bots. Toutes les cartes sont distribuées.</li>
+      <li>Celui qui a le <strong>7♦</strong> commence en le posant.</li>
+      <li>À ton tour, tu poses un <strong>7</strong> pour ouvrir une couleur, ou la carte qui suit une rangée, en montant (8, 9… Roi) ou en descendant (6, 5… 2).</li>
+      <li>L’<strong>As♦</strong> se pose sous le 2♦ ou au-dessus du Roi♦. Tous les autres As vont ensuite du même côté.</li>
+      <li>Si tu peux jouer, tu es obligé de jouer.</li>
+      <li>Si tu ne peux pas, tu demandes une carte au joueur qui te précède. Il choisit laquelle te donner, et ton tour est fini.</li>
+      <li>La partie se termine dès qu’un joueur n’a plus de cartes : il gagne.</li>
+    </ul>
+    <button class="btn" id="btn-rules-close" type="button">Compris !</button>
+  </dialog>
 
   <script src="rules.js"></script>
   <script src="game.js"></script>

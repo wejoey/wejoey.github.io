@@ -3,7 +3,7 @@
 
   const R = window.SeptRules; // règles : voir rules.js
   const { SUITS, RANKS, SEVEN, ACE_HIGH } = R;
-  const BOT_DELAY_MS = 800;
+  const SPEEDS = { normale: 800, rapide: 300 }; // délai de réflexion des bots (ms)
 
   const $ = (id) => document.getElementById(id);
   const botsEl = $("bots");
@@ -14,6 +14,9 @@
   const setupEl = $("setup");
   const choicesEl = $("bot-choices");
   const btnAsk = $("btn-ask");
+  const btnSpeed = $("btn-speed");
+  const scoreEl = $("score");
+  const rulesEl = $("rules");
 
   let players = 1;     // toi + les bots (aucun bot affiché avant la distribution)
   let hands = [];      // hands[p] = liste de cartes { s, r } ; p = 0 c'est toi
@@ -26,6 +29,19 @@
   let giveTo = null;   // bot qui attend que tu lui donnes une carte
   let botTimer = null;
   let lastMsg = "";    // dernière action, gardée affichée au tour suivant
+
+  // Préférences et victoires gardées dans le téléphone (si le navigateur le permet).
+  const STORE = "sept-de-carreau";
+  function load(key, fallback) {
+    try { const v = JSON.parse(localStorage.getItem(`${STORE}:${key}`)); return v ?? fallback; } catch (e) { return fallback; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(`${STORE}:${key}`, JSON.stringify(value)); } catch (e) { /* tant pis */ }
+  }
+  let speed = SPEEDS[load("vitesse", "normale")] ? load("vitesse", "normale") : "normale";
+  let wins = load("victoires", { toi: 0, bots: 0 });
+  if (typeof wins.toi !== "number" || typeof wins.bots !== "number") wins = { toi: 0, bots: 0 };
+  const delay = () => SPEEDS[speed];
 
   const name = (p) => (p === 0 ? "Toi" : `Bot ${p}`);
   const playable = (p) => R.playableCards(board, hands[p], firstMove);
@@ -74,7 +90,10 @@
                    (aceGone || (side === "low" && pos === ACE_HIGH) || (side === "high" && pos === 0))) {
           slot.classList.add("gone"); // l'As est déjà posé, ou il va de l'autre côté
         } else if (r0 && (pos === r0.low - 1 || pos === r0.high + 1)) {
-          slot.classList.add("next");
+          // Une case As n'est encadrée que si l'As peut vraiment y aller
+          // (les autres As attendent l'As♦).
+          const isAce = pos === 0 || pos === ACE_HIGH;
+          if (!isAce || R.targetPos(board, { s, r: R.ACE }, firstMove) === pos) slot.classList.add("next");
         }
         slot.textContent = RANKS[pos % 13];
         row.appendChild(slot);
@@ -157,7 +176,7 @@
       else statusEl.textContent = pre + `Aucune carte possible : demande une carte à ${name(R.previousPlayer(0, players))}.`;
     } else {
       statusEl.textContent = pre + `${name(current)} réfléchit…`;
-      botTimer = setTimeout(botPlay, BOT_DELAY_MS);
+      botTimer = setTimeout(botPlay, delay());
     }
   }
 
@@ -215,12 +234,12 @@
       lastMsg = `${name(p)} ne peut pas jouer : ${name(g)} lui donne une carte.`;
       render();
       statusEl.textContent = lastMsg;
-      botTimer = setTimeout(() => afterGive(g), BOT_DELAY_MS / 2);
+      botTimer = setTimeout(() => afterGive(g), delay() / 2);
       return;
     }
     render();
     statusEl.textContent = lastMsg;
-    botTimer = setTimeout(nextTurn, BOT_DELAY_MS / 2);
+    botTimer = setTimeout(nextTurn, delay() / 2);
   }
 
   function finish(p) {
@@ -230,8 +249,31 @@
       ? "🎉 Bravo, tu as gagné !"
       : `${name(p)} a gagné. Tu avais encore ${plural(hands[0].length)}.`;
     btnAsk.hidden = true;
+    if (p === 0) wins.toi++; else wins.bots++;
+    save("victoires", wins);
+    renderExtras();
     setupEl.hidden = false;
   }
+
+  // ---------- Victoires, vitesse et règles ----------
+
+  function renderExtras() {
+    scoreEl.textContent = `Victoires : toi ${wins.toi} · bots ${wins.bots}`;
+    btnSpeed.textContent = `Bots : vitesse ${speed}`;
+  }
+
+  btnSpeed.addEventListener("click", () => {
+    speed = speed === "normale" ? "rapide" : "normale";
+    save("vitesse", speed);
+    renderExtras();
+  });
+
+  $("btn-rules").addEventListener("click", () => {
+    if (rulesEl.showModal) rulesEl.showModal(); else rulesEl.setAttribute("open", "");
+  });
+  $("btn-rules-close").addEventListener("click", () => {
+    if (rulesEl.close) rulesEl.close(); else rulesEl.removeAttribute("open");
+  });
 
   // ---------- Choix du nombre de bots ----------
 
@@ -246,5 +288,6 @@
   }
   btnAsk.addEventListener("click", humanAsk);
 
+  renderExtras();
   render();
 })();

@@ -40,6 +40,36 @@ html, body {
 .top h1 { font-size: 1.2rem; font-weight: 800; }
 .home { color: var(--muted); font-size: 0.85rem; text-decoration: none; }
 .home:hover, .home:focus-visible { color: var(--text); text-decoration: underline; }
+.links { display: flex; gap: 14px; align-items: baseline; }
+.link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.link:hover, .link:focus-visible { color: var(--text); }
+.score { color: var(--muted); font-size: 0.9rem; }
+
+/* ---------- Fenêtre des règles ---------- */
+.rules {
+  margin: auto;
+  max-width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 0;
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  background: var(--felt-dark);
+  color: var(--text);
+}
+.rules::backdrop { background: rgba(0, 0, 0, 0.6); }
+.rules h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.rules ul { padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; line-height: 1.35; margin-bottom: 14px; }
+.rules .btn { display: block; margin: 0 auto; }
 
 /* ---------- Bots ---------- */
 .bots { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
