@@ -15,16 +15,21 @@
       <h1>Le 7 de carreau</h1>
     </header>
 
-    <!-- Les 3 bots : nom + nombre de cartes restantes -->
+    <!-- Les bots : nom + nombre de cartes restantes -->
     <ul class="bots" id="bots" aria-label="Adversaires"></ul>
 
-    <!-- La table : une rangée par couleur, de l'As au Roi -->
+    <!-- La table : une rangée par couleur, de l’As (bas) au Roi puis l’As (haut) -->
     <section class="board" id="board" aria-label="Table"></section>
 
-    <p class="status" id="status" aria-live="polite">Appuie sur « Distribuer » pour commencer.</p>
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <!-- Choix du nombre de bots, au début et à la fin de chaque partie -->
+    <section class="setup" id="setup">
+      <p class="setup-title">Contre combien de bots veux-tu jouer&nbsp;?</p>
+      <div class="choices" id="bot-choices"></div>
+    </section>
 
     <div class="actions">
-      <button class="btn" id="btn-start" type="button">Distribuer</button>
       <button class="btn btn-pass" id="btn-pass" type="button" hidden>Passer</button>
     </div>
 
@@ -35,6 +40,7 @@
     </section>
   </main>
 
+  <script src="rules.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

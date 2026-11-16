@@ -42,7 +42,8 @@ html, body {
 .home:hover, .home:focus-visible { color: var(--text); text-decoration: underline; }
 
 /* ---------- Bots ---------- */
-.bots { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bots { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.bots:empty { display: none; }
 .bot {
   background: var(--felt-dark);
   border-radius: 10px;
@@ -68,7 +69,7 @@ html, body {
 }
 .row {
   display: grid;
-  grid-template-columns: 1.4em repeat(13, 1fr);
+  grid-template-columns: 1.2em repeat(14, 1fr);
   gap: 2px;
   align-items: center;
 }
@@ -80,10 +81,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.6rem, 3vw, 0.95rem);
+  font-size: clamp(0.55rem, 2.8vw, 0.9rem);
   font-weight: 800;
   color: rgba(255, 255, 255, 0.25);
 }
+.slot.gone { visibility: hidden; }
 .slot.seven { outline: 1px dashed rgba(255, 255, 255, 0.35); }
 .slot.filled { background: var(--card); color: var(--black); }
 .slot.filled.red { color: var(--red); }
@@ -94,6 +96,11 @@ html, body {
 /* ---------- Statut & boutons ---------- */
 .status { text-align: center; min-height: 2.6em; font-weight: 600; line-height: 1.3; }
 .actions { display: flex; justify-content: center; gap: 10px; min-height: 48px; }
+.setup { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.setup[hidden] { display: none; }
+.setup-title { font-weight: 700; }
+.choices { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.btn.btn-choice { width: 52px; height: 52px; padding: 0; font-size: 1.3rem; }
 .btn {
   border: 0;
   border-radius: 999px;
@@ -110,12 +117,14 @@ html, body {
 
 /* ---------- Main du joueur ---------- */
 .hand-zone { margin-top: auto; }
+.hand-zone:has(.hand:empty) { display: none; }
 .hand-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
 .hand {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
 }
+.hand.big { grid-template-columns: repeat(9, 1fr); gap: 4px; }
 .card {
   aspect-ratio: 5 / 7;
   border: 0;
