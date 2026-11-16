@@ -13,7 +13,7 @@
   const handCount = $("hand-count");
   const setupEl = $("setup");
   const choicesEl = $("bot-choices");
-  const btnPass = $("btn-pass");
+  const btnAsk = $("btn-ask");
 
   let players = 1;     // toi + les bots (aucun bot affiché avant la distribution)
   let hands = [];      // hands[p] = liste de cartes { s, r } ; p = 0 c'est toi
@@ -22,7 +22,8 @@
   let firstMove = true;
   let over = true;
   let lastPlayed = null;
-  let passed = [];
+  let asked = [];      // asked[p] : le joueur a demandé une carte à son dernier tour
+  let giveTo = null;   // bot qui attend que tu lui donnes une carte
   let botTimer = null;
   let lastMsg = "";    // dernière action, gardée affichée au tour suivant
 
@@ -38,7 +39,7 @@
       const li = document.createElement("li");
       li.className = "bot";
       if (p === current && !over) li.classList.add("turn");
-      if (passed[p]) li.classList.add("passed");
+      if (asked[p]) li.classList.add("asked");
       if (over && hands[p] && hands[p].length === 0) li.classList.add("winner");
       const n = hands[p] ? hands[p].length : 0;
       li.innerHTML = `<div class="bot-name">${name(p)}</div><div class="bot-info">${plural(n)}</div>`;
@@ -85,7 +86,8 @@
   function renderHand() {
     handEl.innerHTML = "";
     const h = hands[0] || [];
-    const myTurn = current === 0 && !over;
+    const myTurn = current === 0 && !over && giveTo === null;
+    const giving = giveTo !== null && !over;
     handEl.classList.toggle("big", h.length > 14);
     h.forEach((c) => {
       const b = document.createElement("button");
@@ -93,7 +95,10 @@
       b.className = "card" + (SUITS[c.s].red ? " red" : "");
       b.innerHTML = `<span>${RANKS[c.r]}</span><span>${SUITS[c.s].sym}</span>`;
       b.setAttribute("aria-label", R.label(c));
-      if (myTurn && R.canPlay(board, c, firstMove)) {
+      if (giving) {
+        b.classList.add("playable", "give");
+        b.addEventListener("click", () => humanGive(c));
+      } else if (myTurn && R.canPlay(board, c, firstMove)) {
         b.classList.add("playable");
         b.addEventListener("click", () => humanPlay(c));
       } else {
@@ -102,7 +107,8 @@
       handEl.appendChild(b);
     });
     handCount.textContent = h.length ? `(${h.length})` : "";
-    btnPass.hidden = !(myTurn && playable(0).length === 0);
+    btnAsk.hidden = !(myTurn && R.canAsk(board, h, firstMove));
+    btnAsk.textContent = `Demander une carte à ${name(R.previousPlayer(0, players))}`;
   }
 
   function render() {
@@ -121,7 +127,8 @@
     firstMove = true;
     over = false;
     lastPlayed = null;
-    passed = new Array(players).fill(false);
+    asked = new Array(players).fill(false);
+    giveTo = null;
     lastMsg = "";
     current = R.startingPlayer(hands);
     setupEl.hidden = true;
@@ -133,7 +140,7 @@
     R.removeCard(hands[p], c);
     firstMove = false;
     lastPlayed = { s: c.s, pos };
-    passed[p] = false;
+    asked[p] = false;
   }
 
   function nextTurn() {
@@ -148,7 +155,7 @@
     if (current === 0) {
       if (firstMove) statusEl.textContent = "Tu as le 7♦ : pose-le pour commencer !";
       else if (playable(0).length) statusEl.textContent = pre + "À toi !";
-      else statusEl.textContent = pre + "Aucune carte possible : passe.";
+      else statusEl.textContent = pre + `Aucune carte possible : demande une carte à ${name(R.previousPlayer(0, players))}.`;
     } else {
       statusEl.textContent = pre + `${name(current)} réfléchit…`;
       botTimer = setTimeout(botPlay, BOT_DELAY_MS);
@@ -162,10 +169,30 @@
     nextTurn();
   }
 
-  function humanPass() {
-    if (current !== 0 || over || playable(0).length) return;
-    passed[0] = true;
-    lastMsg = "Tu passes.";
+  // Tu ne peux rien poser : le joueur qui te précède te donne une carte.
+  function humanAsk() {
+    if (current !== 0 || over || giveTo !== null || !R.canAsk(board, hands[0], firstMove)) return;
+    const g = R.previousPlayer(0, players);
+    const c = R.worstCard(board, hands[g]);
+    R.giveCard(hands, g, 0, c);
+    asked[0] = true;
+    lastMsg = `${name(g)} te donne ${R.label(c)}.`;
+    afterGive(g);
+  }
+
+  // Un bot t'a demandé une carte : tu choisis celle que tu lui donnes.
+  function humanGive(c) {
+    if (giveTo === null || over) return;
+    const p = giveTo;
+    giveTo = null;
+    R.giveCard(hands, 0, p, c);
+    lastMsg = `Tu donnes ${R.label(c)} à ${name(p)}.`;
+    afterGive(0);
+  }
+
+  // Celui qui donne sa dernière carte n'a plus de cartes : la partie se termine.
+  function afterGive(giver) {
+    if (hands[giver].length === 0) return finish(giver);
     nextTurn();
   }
 
@@ -177,8 +204,20 @@
       play(p, c);
       lastMsg = `${name(p)} pose ${R.label(c)}.`;
     } else {
-      passed[p] = true;
-      lastMsg = `${name(p)} passe.`;
+      asked[p] = true;
+      const g = R.previousPlayer(p, players);
+      if (g === 0) {
+        giveTo = p;
+        render();
+        statusEl.textContent = `${name(p)} ne peut pas jouer et te demande une carte : touche celle que tu lui donnes.`;
+        return;
+      }
+      R.giveCard(hands, g, p, R.worstCard(board, hands[g]));
+      lastMsg = `${name(p)} ne peut pas jouer : ${name(g)} lui donne une carte.`;
+      render();
+      statusEl.textContent = lastMsg;
+      botTimer = setTimeout(() => afterGive(g), BOT_DELAY_MS / 2);
+      return;
     }
     render();
     statusEl.textContent = lastMsg;
@@ -191,7 +230,7 @@
     statusEl.textContent = p === 0
       ? "🎉 Bravo, tu as gagné !"
       : `${name(p)} a gagné. Tu avais encore ${plural(hands[0].length)}.`;
-    btnPass.hidden = true;
+    btnAsk.hidden = true;
     setupEl.hidden = false;
   }
 
@@ -206,7 +245,7 @@
     b.addEventListener("click", () => startGame(n));
     choicesEl.appendChild(b);
   }
-  btnPass.addEventListener("click", humanPass);
+  btnAsk.addEventListener("click", humanAsk);
 
   render();
 })();

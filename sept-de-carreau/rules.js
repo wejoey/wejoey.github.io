@@ -9,8 +9,12 @@
 // - Variante de l'As : l'As♦ se pose soit sous le 2♦, soit au-dessus du Roi♦.
 //   Son côté décide pour les autres As : ils se posent tous du même côté,
 //   et seulement après l'As♦.
-// - On passe seulement si on ne peut rien poser.
-// - Le premier qui n'a plus de cartes gagne.
+// - On est obligé de poser une carte si on peut.
+// - Si on ne peut rien poser, on demande une carte au joueur qui nous
+//   précède (dans l'ordre du tour). Il donne la carte de son choix ; les
+//   bots donnent la « pire » carte, celle qui est la plus loin d'être
+//   jouable. Recevoir la carte termine le tour.
+// - La partie se termine dès que le premier joueur n'a plus de cartes.
 (function (root) {
   "use strict";
 
@@ -123,6 +127,46 @@
     return opts[0];
   }
 
+  // On ne peut demander une carte que si on n'a rien à poser.
+  const mustPlay = (board, hand, firstMove) => playableCards(board, hand, firstMove).length > 0;
+  const canAsk = (board, hand, firstMove) => !mustPlay(board, hand, firstMove);
+
+  // Le joueur qui précède p dans l'ordre du tour (celui à qui on demande).
+  const previousPlayer = (p, players) => (p - 1 + players) % players;
+
+  // Nombre de cartes qui doivent encore être posées avant que c soit jouable
+  // (0 = jouable tout de suite).
+  function distance(board, c) {
+    if (canPlay(board, c, false)) return 0;
+    const row = board[c.s];
+    if (c.r === ACE) {
+      const lowNeed = row ? row.low - 1 : SEVEN;           // 2..(bas de la rangée)
+      const highNeed = row ? KING - row.high : KING - SEVEN + 1; // (haut de la rangée)..Roi
+      if (c.s === DIAMONDS) return Math.min(lowNeed, highNeed);
+      const side = aceSide(board);
+      if (side === "low") return lowNeed;
+      if (side === "high") return highNeed;
+      return Math.min(lowNeed, highNeed) + 1;              // il faut aussi l'As♦
+    }
+    if (!row) return Math.abs(c.r - SEVEN);                // le 7, puis les cartes entre les deux
+    return c.r < row.low ? row.low - c.r - 1 : c.r - row.high - 1;
+  }
+
+  // Carte qu'un bot donne quand on lui en demande une : la plus loin d'être
+  // jouable ; égalités départagées au hasard.
+  function worstCard(board, hand, rnd = Math.random) {
+    const opts = shuffle(hand.slice(), rnd);
+    opts.sort((a, b) => distance(board, b) - distance(board, a));
+    return opts[0] || null;
+  }
+
+  // Donne la carte c du joueur `from` au joueur `to` (modifie hands).
+  function giveCard(hands, from, to, c) {
+    removeCard(hands[from], c);
+    hands[to].push(c);
+    sortHand(hands[to]);
+  }
+
   const label = (c) => RANKS[c.r] + SUITS[c.s].sym;
 
   const Rules = {
@@ -130,6 +174,7 @@
     newDeck, shuffle, sortHand, deal, startingPlayer, emptyBoard,
     targetPos, canPlay, playableCards, placeCard, removeCard, aceUsed, aceSide,
     botScore, botChoose, label,
+    mustPlay, canAsk, previousPlayer, distance, worstCard, giveCard,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = Rules;

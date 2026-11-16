@@ -158,8 +158,91 @@ test("le bot compte l'As quand il monte vers le Roi", () => {
   assert.equal(R.botScore(hand, card("A", H)), 0);
 });
 
+test("un joueur qui peut jouer est obligé de jouer : il ne peut pas demander de carte", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  const hand = [card("2", S), card("8", D)]; // le 8♦ est jouable
+  assert.ok(R.mustPlay(board, hand, false));
+  assert.ok(!R.canAsk(board, hand, false));
+  assert.notEqual(R.botChoose(board, hand, false), null, "le bot pose une carte");
+});
+
+test("un joueur qui ne peut rien jouer peut demander une carte", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  const hand = [card("2", S), card("R", C)];
+  assert.ok(!R.mustPlay(board, hand, false));
+  assert.ok(R.canAsk(board, hand, false));
+  assert.equal(R.botChoose(board, hand, false), null);
+});
+
+test("le bot joue toujours quand il a une carte jouable (mains au hasard)", () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    const rnd = seeded(seed);
+    const deck = R.shuffle(R.newDeck(), rnd);
+    const board = R.emptyBoard();
+    let firstMove = true;
+    // Pose quelques cartes au hasard pour avoir une table variée.
+    for (const c of deck.slice()) {
+      if (rnd() < 0.5 && R.canPlay(board, c, firstMove)) { R.placeCard(board, c, firstMove); firstMove = false; R.removeCard(deck, c); }
+    }
+    const hand = deck.slice(0, 8);
+    const choice = R.botChoose(board, hand, firstMove, rnd);
+    assert.equal(choice !== null, R.mustPlay(board, hand, firstMove), `graine ${seed}`);
+    if (choice) assert.ok(R.canPlay(board, choice, firstMove));
+  }
+});
+
+test("on demande une carte au joueur qui nous précède", () => {
+  assert.equal(R.previousPlayer(2, 4), 1);
+  assert.equal(R.previousPlayer(0, 4), 3);
+  assert.equal(R.previousPlayer(1, 2), 0);
+  assert.equal(R.previousPlayer(0, 6), 5);
+});
+
+test("distance : nombre de cartes à poser avant de pouvoir jouer une carte", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  R.placeCard(board, card("8", D), false);           // ♦ : 7-8
+  assert.equal(R.distance(board, card("9", D)), 0);  // jouable
+  assert.equal(R.distance(board, card("6", D)), 0);
+  assert.equal(R.distance(board, card("R", D)), 4);  // 9, 10, V, D
+  assert.equal(R.distance(board, card("2", D)), 4);  // 6, 5, 4, 3
+  assert.equal(R.distance(board, card("7", S)), 0);  // un 7 se pose toujours
+  assert.equal(R.distance(board, card("2", S)), 5);  // 7, 6, 5, 4, 3
+  assert.equal(R.distance(board, card("R", S)), 6);  // 7, 8, 9, 10, V, D
+});
+
+test("distance de l'As selon le côté de l'As♦", () => {
+  const board = R.emptyBoard();
+  board[2] = { low: 3, high: 11 };                   // ♦ du 4 à la Dame
+  assert.equal(R.distance(board, card("A", D)), 1);  // il manque le Roi♦
+  assert.equal(R.distance(board, card("A", S)), 7);  // ♠ vide : 6 cartes jusqu'au 2, + l'As♦
+  board[2] = { low: 0, high: 11 };                   // As♦ posé sous le 2
+  board[0] = { low: 4, high: 12 };                   // ♠ du 5 au Roi
+  assert.equal(R.distance(board, card("A", S)), 3);  // 4, 3, 2 (pas au-dessus du Roi)
+});
+
+test("le bot donne la carte la plus loin d'être jouable", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  const hand = [card("8", D), card("6", S), card("A", C), card("V", H)];
+  // 8♦ : 0 ; 6♠ : 1 ; V♥ : 5 ; A♣ : 6 + l'As♦ = 7
+  for (let i = 0; i < 20; i++) {
+    assert.deepEqual(R.worstCard(board, hand, seeded(i)), card("A", C));
+  }
+  assert.deepEqual(R.worstCard(board, [card("8", D), card("6", S)]), card("6", S));
+});
+
+test("donner une carte la fait passer d'une main à l'autre", () => {
+  const hands = [[card("2", S), card("R", C)], [card("5", H)]];
+  R.giveCard(hands, 0, 1, card("R", C));
+  assert.deepEqual(hands[0], [card("2", S)]);
+  assert.deepEqual(hands[1], [card("5", H), card("R", C)]);
+});
+
 test("des parties complètes entre bots se terminent toujours, pour 2 à 6 joueurs", () => {
-  for (let seed = 1; seed <= 300; seed++) {
+  for (let seed = 1; seed <= 500; seed++) {
     const rnd = seeded(seed);
     const players = 2 + (seed % 5);
     const hands = R.deal(R.shuffle(R.newDeck(), rnd), players);
@@ -168,23 +251,31 @@ test("des parties complètes entre bots se terminent toujours, pour 2 à 6 joueu
     let current = R.startingPlayer(hands);
     let placed = 0;
     let turns = 0;
-    let passesInARow = 0;
-    while (hands[current].length > 0 || placed === 0) {
-      const c = R.botChoose(board, hands[current], firstMove, rnd);
+    let winner = -1;
+    while (winner < 0) {
+      const hand = hands[current];
+      const c = R.botChoose(board, hand, firstMove, rnd);
       if (c) {
         R.placeCard(board, c, firstMove);
-        R.removeCard(hands[current], c);
+        R.removeCard(hand, c);
         firstMove = false;
         placed++;
-        passesInARow = 0;
-        if (hands[current].length === 0) break;
+        if (hand.length === 0) winner = current;
       } else {
-        passesInARow++;
-        assert.ok(passesInARow < players, `blocage (graine ${seed})`);
+        // Ne peut pas jouer : demande une carte au joueur précédent.
+        assert.ok(R.canAsk(board, hand, firstMove));
+        const giver = R.previousPlayer(current, players);
+        const before = hand.length;
+        R.giveCard(hands, giver, current, R.worstCard(board, hands[giver], rnd));
+        assert.equal(hand.length, before + 1);
+        if (hands[giver].length === 0) winner = giver;
       }
       current = (current + 1) % players;
-      assert.ok(++turns < 1000, `partie infinie (graine ${seed})`);
+      assert.ok(++turns < 2000, `partie infinie (graine ${seed})`);
     }
+    // La partie s'arrête dès que le premier joueur n'a plus de cartes.
+    assert.equal(hands[winner].length, 0);
+    assert.equal(hands.filter((h) => h.length === 0).length, 1, "un seul gagnant");
     const onBoard = board.reduce((n, row) => n + (row ? row.high - row.low + 1 : 0), 0);
     assert.equal(onBoard, placed, "chaque carte posée occupe une case");
     assert.equal(onBoard + hands.flat().length, 52, "aucune carte perdue");
