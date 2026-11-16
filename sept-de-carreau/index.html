@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14532d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Le 7 de carreau</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game">
+    <header class="top">
+      <a class="home" href="../">← Accueil</a>
+      <h1>Le 7 de carreau</h1>
+    </header>
+
+    <!-- Les 3 bots : nom + nombre de cartes restantes -->
+    <ul class="bots" id="bots" aria-label="Adversaires"></ul>
+
+    <!-- La table : une rangée par couleur, de l'As au Roi -->
+    <section class="board" id="board" aria-label="Table"></section>
+
+    <p class="status" id="status" aria-live="polite">Appuie sur « Distribuer » pour commencer.</p>
+
+    <div class="actions">
+      <button class="btn" id="btn-start" type="button">Distribuer</button>
+      <button class="btn btn-pass" id="btn-pass" type="button" hidden>Passer</button>
+    </div>
+
+    <!-- La main du joueur -->
+    <section class="hand-zone">
+      <p class="hand-title">Ta main <span id="hand-count"></span></p>
+      <div class="hand" id="hand" aria-label="Ta main"></div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
