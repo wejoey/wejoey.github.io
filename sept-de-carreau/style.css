@@ -71,22 +71,73 @@ html, body {
 .rules ul { padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; line-height: 1.35; margin-bottom: 14px; }
 .rules .btn { display: block; margin: 0 auto; }
 
-/* ---------- Bots ---------- */
-.bots { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
-.bots:empty { display: none; }
-.bot {
+/* ---------- Joueurs autour de la table ---------- */
+.table { position: relative; }
+.table:has(.seat) { padding: 80px 0 46px; }   /* place pour l'arc des bots et ton siège */
+.seats { list-style: none; }
+.seat {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 1;
+  min-width: 56px;
+  padding: 4px 2px;
+  border-radius: 12px;
   background: var(--felt-dark);
-  border-radius: 10px;
-  padding: 8px 6px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
   text-align: center;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
+  line-height: 1.15;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
 }
-.bot.turn { border-color: var(--accent); }
-.bot.asked .bot-info::after { content: " · a demandé"; color: var(--muted); }
-.bot-name { font-weight: 700; font-size: 0.95rem; }
-.bot-info { font-size: 0.8rem; color: var(--muted); }
-.bot.winner { border-color: var(--accent); background: #3f3a0b; }
+.seat.me { left: 50%; bottom: 0; }
+.seat-name { display: block; font-weight: 800; font-size: 0.9rem; }
+.seat-info { display: block; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+/* Joueur dont c'est le tour : bien visible */
+.seat.turn {
+  background: var(--accent);
+  border-color: #fff;
+  color: #111;
+  transform: translateX(-50%) scale(1.06);
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.35), 0 0 18px rgba(250, 204, 21, 0.8);
+  animation: glow 1.2s ease-in-out infinite alternate;
+  z-index: 2;
+}
+.seat.turn .seat-info { color: #3b3200; }
+.seat-tag {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #111;
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.seat.waiting { border-color: #f97316; box-shadow: 0 0 12px rgba(249, 115, 22, 0.8); }
+.seat.winner { background: #3f3a0b; border-color: var(--accent); }
+@keyframes glow {
+  from { box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.3), 0 0 10px rgba(250, 204, 21, 0.6); }
+  to   { box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.45), 0 0 22px rgba(250, 204, 21, 0.95); }
+}
+@media (prefers-reduced-motion: reduce) { .seat.turn { animation: none; } }
+
+/* Ta main s'illumine quand c'est ton tour */
+.hand-zone { border-radius: 12px; padding: 6px; transition: box-shadow 0.2s; }
+.hand-zone.turn { box-shadow: 0 0 0 3px var(--accent), 0 0 16px rgba(250, 204, 21, 0.5); }
+
+/* Petite carte dans les messages : ♠ et ♣ en noir, ♥ et ♦ en rouge */
+.chip {
+  display: inline-block;
+  background: var(--card);
+  color: var(--black);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.chip.red { color: var(--red); }
 
 /* ---------- Table ---------- */
 .board {
@@ -103,7 +154,15 @@ html, body {
   gap: 2px;
   align-items: center;
 }
-.row-suit { font-size: 1.1rem; text-align: center; }
+.row-suit {
+  font-size: 1rem;
+  text-align: center;
+  background: var(--card);
+  color: var(--black);            /* ♠ et ♣ en noir */
+  border-radius: 4px;
+  line-height: 1.4;
+}
+.row-suit.red { color: var(--red); }
 .slot {
   aspect-ratio: 5 / 7;
   border-radius: 4px;
@@ -201,9 +260,7 @@ html, body {
   .col-table { flex: 1.1; }
   .col-hand { flex: 1; }
   .top h1 { font-size: 1rem; }
-  .bot { padding: 4px; }
-  .bot-name { font-size: 0.85rem; }
-  .bots { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+  .table:has(.seat) { padding: 76px 0 42px; }
   .board { padding: 6px 4px; gap: 4px; }
   .slot { aspect-ratio: 5 / 6; }
   .status { min-height: 0; }
@@ -216,7 +273,6 @@ html, body {
 /* ---------- Petits téléphones en portrait (ex. iPhone SE) ---------- */
 @media (orientation: portrait) and (max-height: 640px) {
   .game { gap: 8px; }
-  .bot { padding: 4px; }
   .status { min-height: 0; }
   .card { aspect-ratio: 5 / 6; }
 }

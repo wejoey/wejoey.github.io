@@ -6,7 +6,8 @@
   const SPEEDS = { normale: 800, rapide: 300 }; // délai de réflexion des bots (ms)
 
   const $ = (id) => document.getElementById(id);
-  const botsEl = $("bots");
+  const seatsEl = $("seats");
+  const handZone = $("hand-zone");
   const boardEl = $("board");
   const statusEl = $("status");
   const handEl = $("hand");
@@ -46,20 +47,40 @@
   const name = (p) => (p === 0 ? "Toi" : `Bot ${p}`);
   const playable = (p) => R.playableCards(board, hands[p], firstMove);
   const plural = (n) => `${n} carte${n > 1 ? "s" : ""}`;
+  // \uFE0E : force l'affichage « texte » des symboles (sinon certains
+  // téléphones les dessinent en emoji, avec leurs propres couleurs).
+  const sym = (s) => SUITS[s].sym + "\uFE0E";
+  // Petite carte dans les messages (♠ et ♣ en noir, ♥ et ♦ en rouge).
+  const chip = (c) => `<span class="chip${SUITS[c.s].red ? " red" : ""}">${RANKS[c.r]}${sym(c.s)}</span>`;
+  const setStatus = (html) => { statusEl.innerHTML = html; }; // contenu généré par le jeu seulement
 
   // ---------- Affichage ----------
 
-  function renderBots() {
-    botsEl.innerHTML = "";
-    for (let p = 1; p < players; p++) {
+  // Les joueurs sont assis autour de la table : toi en bas, les bots en arc
+  // au-dessus, dans l'ordre du tour (sens des aiguilles d'une montre).
+  function renderSeats() {
+    seatsEl.innerHTML = "";
+    if (players < 2) return;
+    const bots = players - 1;
+    for (let p = 0; p < players; p++) {
       const li = document.createElement("li");
-      li.className = "bot";
+      li.className = "seat" + (p === 0 ? " me" : "");
       if (p === current && !over) li.classList.add("turn");
-      if (asked[p]) li.classList.add("asked");
+      if (giveTo === p && !over) li.classList.add("waiting");
       if (over && hands[p] && hands[p].length === 0) li.classList.add("winner");
+      if (p > 0) {
+        // Sièges de même largeur, répartis de gauche à droite sans se chevaucher,
+        // plus hauts au milieu pour dessiner un arc autour de la table.
+        const w = `min(84px, (100% - ${(bots - 1) * 6}px) / ${bots})`;
+        const t = bots === 1 ? 0.5 : (p - 1) / (bots - 1);
+        li.style.width = `calc(${w})`;
+        li.style.left = `calc(${t} * (100% - ${w}) + ${w} / 2)`;
+        li.style.top = `${Math.round(26 * (1 - Math.sin(Math.PI * t)))}px`;
+      }
       const n = hands[p] ? hands[p].length : 0;
-      li.innerHTML = `<div class="bot-name">${name(p)}</div><div class="bot-info">${plural(n)}</div>`;
-      botsEl.appendChild(li);
+      const tag = p === current && !over ? `<span class="seat-tag">${p === 0 ? "À toi !" : "Joue…"}</span>` : "";
+      li.innerHTML = `<span class="seat-name">${name(p)}</span><span class="seat-info">${plural(n)}</span>${tag}`;
+      seatsEl.appendChild(li);
     }
   }
 
@@ -70,8 +91,8 @@
       row.className = "row";
       const head = document.createElement("span");
       head.className = "row-suit";
-      head.style.color = suit.red ? "#f87171" : "#f9fafb";
-      head.textContent = suit.sym;
+      if (suit.red) head.classList.add("red");
+      head.textContent = sym(s);
       row.appendChild(head);
       const r0 = board[s];
       const aceGone = R.aceUsed(r0);
@@ -110,7 +131,7 @@
       const b = document.createElement("button");
       b.type = "button";
       b.className = "card" + (SUITS[c.s].red ? " red" : "");
-      b.innerHTML = `<span>${RANKS[c.r]}</span><span>${SUITS[c.s].sym}</span>`;
+      b.innerHTML = `<span>${RANKS[c.r]}</span><span>${sym(c.s)}</span>`;
       b.setAttribute("aria-label", R.label(c));
       if (giving) {
         b.classList.add("playable", "give");
@@ -129,7 +150,8 @@
   }
 
   function render() {
-    renderBots();
+    renderSeats();
+    handZone.classList.toggle("turn", current === 0 && !over && giveTo === null);
     renderBoard();
     renderHand();
   }
@@ -170,11 +192,11 @@
     render();
     const pre = lastMsg ? lastMsg + " " : "";
     if (current === 0) {
-      if (firstMove) statusEl.textContent = "Tu as le 7♦ : pose-le pour commencer !";
-      else if (playable(0).length) statusEl.textContent = pre + "À toi !";
-      else statusEl.textContent = pre + `Aucune carte possible : demande une carte à ${name(R.previousPlayer(0, players))}.`;
+      if (firstMove) setStatus(`Tu as le ${chip({ s: R.DIAMONDS, r: SEVEN })} : pose-le pour commencer !`);
+      else if (playable(0).length) setStatus(pre + "À toi !");
+      else setStatus(pre + `Aucune carte possible : demande une carte à ${name(R.previousPlayer(0, players))}.`);
     } else {
-      statusEl.textContent = pre + `${name(current)} réfléchit…`;
+      setStatus(pre + `${name(current)} réfléchit…`);
       botTimer = setTimeout(botPlay, delay());
     }
   }
@@ -182,7 +204,7 @@
   function humanPlay(c) {
     if (current !== 0 || over || !R.canPlay(board, c, firstMove)) return;
     play(0, c);
-    lastMsg = `Tu poses ${R.label(c)}.`;
+    lastMsg = `Tu poses ${chip(c)}.`;
     nextTurn();
   }
 
@@ -193,7 +215,7 @@
     const c = R.worstCard(board, hands[g]);
     R.giveCard(hands, g, 0, c);
     asked[0] = true;
-    lastMsg = `${name(g)} te donne ${R.label(c)}.`;
+    lastMsg = `${name(g)} te donne ${chip(c)}.`;
     afterGive(g);
   }
 
@@ -203,7 +225,7 @@
     const p = giveTo;
     giveTo = null;
     R.giveCard(hands, 0, p, c);
-    lastMsg = `Tu donnes ${R.label(c)} à ${name(p)}.`;
+    lastMsg = `Tu donnes ${chip(c)} à ${name(p)}.`;
     afterGive(0);
   }
 
@@ -219,34 +241,34 @@
     const c = R.botChoose(board, hands[p], firstMove);
     if (c) {
       play(p, c);
-      lastMsg = `${name(p)} pose ${R.label(c)}.`;
+      lastMsg = `${name(p)} pose ${chip(c)}.`;
     } else {
       asked[p] = true;
       const g = R.previousPlayer(p, players);
       if (g === 0) {
         giveTo = p;
         render();
-        statusEl.textContent = `${name(p)} ne peut pas jouer et te demande une carte : touche celle que tu lui donnes.`;
+        setStatus(`${name(p)} ne peut pas jouer et te demande une carte : touche celle que tu lui donnes.`);
         return;
       }
       R.giveCard(hands, g, p, R.worstCard(board, hands[g]));
       lastMsg = `${name(p)} ne peut pas jouer : ${name(g)} lui donne une carte.`;
       render();
-      statusEl.textContent = lastMsg;
+      setStatus(lastMsg);
       botTimer = setTimeout(() => afterGive(g), delay() / 2);
       return;
     }
     render();
-    statusEl.textContent = lastMsg;
+    setStatus(lastMsg);
     botTimer = setTimeout(nextTurn, delay() / 2);
   }
 
   function finish(p) {
     over = true;
     render();
-    statusEl.textContent = p === 0
+    setStatus(p === 0
       ? "🎉 Bravo, tu as gagné !"
-      : `${name(p)} a gagné. Tu avais encore ${plural(hands[0].length)}.`;
+      : `${name(p)} a gagné. Tu avais encore ${plural(hands[0].length)}.`);
     btnAsk.hidden = true;
     if (p === 0) wins.toi++; else wins.bots++;
     save("victoires", wins);

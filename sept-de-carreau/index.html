@@ -20,11 +20,12 @@
       <h1>Le 7 de carreau</h1>
     </header>
 
-    <!-- Les bots : nom + nombre de cartes restantes -->
-    <ul class="bots" id="bots" aria-label="Adversaires"></ul>
-
-    <!-- La table : une rangée par couleur, de l’As (bas) au Roi puis l’As (haut) -->
-    <section class="board" id="board" aria-label="Table"></section>
+    <!-- La table, avec les joueurs assis autour : les bots en arc au-dessus, toi en bas.
+         Une rangée par couleur, de l’As (bas) au Roi puis l’As (haut). -->
+    <section class="table" id="table">
+      <ul class="seats" id="seats" aria-label="Joueurs"></ul>
+      <section class="board" id="board" aria-label="Table"></section>
+    </section>
     </div>
 
     <div class="col col-hand">
@@ -44,7 +45,7 @@
     </div>
 
     <!-- La main du joueur -->
-    <section class="hand-zone">
+    <section class="hand-zone" id="hand-zone">
       <p class="hand-title">Ta main <span id="hand-count"></span></p>
       <div class="hand" id="hand" aria-label="Ta main"></div>
     </section>
