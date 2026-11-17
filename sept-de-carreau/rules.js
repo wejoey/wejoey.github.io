@@ -9,6 +9,9 @@
 // - Variante de l'As : l'As♦ se pose soit sous le 2♦, soit au-dessus du Roi♦.
 //   Son côté décide pour les autres As : ils se posent tous du même côté,
 //   et seulement après l'As♦.
+// - Le carreau mène : une carte d'une autre couleur ne peut pas dépasser la
+//   rangée de carreau. Par exemple, le 8♠ ne se pose qu'après le 8♦, et le
+//   4♣ qu'après le 4♦.
 // - On est obligé de poser une carte si on peut.
 // - Si on ne peut rien poser, on demande une carte au joueur qui nous
 //   précède (dans l'ordre du tour). Il donne la carte de son choix ; les
@@ -73,8 +76,17 @@
   const emptyBoard = () => [null, null, null, null];
 
   // Position où la carte irait sur la table, ou null si elle ne peut pas être posée.
+  // Vrai si la carte de même rang est déjà posée dans la rangée de carreau.
+  function diamondReached(board, r) {
+    const d = board[DIAMONDS];
+    return !!d && r >= d.low && r <= d.high;
+  }
+
   function targetPos(board, c, firstMove) {
     if (firstMove) return isSevenOfDiamonds(c) ? SEVEN : null; // seul le 7♦ ouvre la partie
+    // Le carreau mène : pas de 8♠ tant que le 8♦ n'est pas posé, etc.
+    // (pour l'As, c'est la règle de l'As♦ plus bas qui s'applique)
+    if (c.s !== DIAMONDS && c.r !== ACE && !diamondReached(board, c.r)) return null;
     const row = board[c.s];
     if (!row) return c.r === SEVEN ? SEVEN : null;
     if (c.r === ACE) {
@@ -159,8 +171,12 @@
       if (side === "high") return highNeed;
       return Math.min(lowNeed, highNeed) + 1;              // il faut aussi l'As♦
     }
-    if (!row) return Math.abs(c.r - SEVEN);                // le 7, puis les cartes entre les deux
-    return c.r < row.low ? row.low - c.r - 1 : c.r - row.high - 1;
+    const own = !row
+      ? Math.abs(c.r - SEVEN)                              // le 7, puis les cartes entre les deux
+      : c.r < row.low ? row.low - c.r - 1 : c.r - row.high - 1;
+    if (c.s === DIAMONDS || diamondReached(board, c.r)) return own;
+    // Il faut aussi que le carreau du même rang soit posé avant.
+    return Math.max(own, distance(board, { s: DIAMONDS, r: c.r }) + 1);
   }
 
   // Carte qu'un bot donne quand on lui en demande une : la plus loin d'être
@@ -183,7 +199,7 @@
   const Rules = {
     SUITS, RANKS, ACE, KING, SEVEN, DIAMONDS, ACE_HIGH, MIN_BOTS, MAX_BOTS,
     newDeck, shuffle, sortHand, deal, startingPlayer, emptyBoard,
-    targetPos, canPlay, playableCards, placeCard, removeCard, aceUsed, aceSide,
+    targetPos, diamondReached, canPlay, playableCards, placeCard, removeCard, aceUsed, aceSide,
     botScore, botChoose, label, cardValue,
     mustPlay, canAsk, previousPlayer, distance, worstCard, giveCard,
   };

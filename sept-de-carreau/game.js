@@ -90,10 +90,9 @@
                    (aceGone || (side === "low" && pos === ACE_HIGH) || (side === "high" && pos === 0))) {
           slot.classList.add("gone"); // l'As est déjà posé, ou il va de l'autre côté
         } else if (r0 && (pos === r0.low - 1 || pos === r0.high + 1)) {
-          // Une case As n'est encadrée que si l'As peut vraiment y aller
-          // (les autres As attendent l'As♦).
-          const isAce = pos === 0 || pos === ACE_HIGH;
-          if (!isAce || R.targetPos(board, { s, r: R.ACE }, firstMove) === pos) slot.classList.add("next");
+          // Une case n'est encadrée que si sa carte peut vraiment y aller
+          // (le carreau mène, et les autres As attendent l'As♦).
+          if (R.targetPos(board, { s, r: pos % 13 }, firstMove) === pos) slot.classList.add("next");
         }
         slot.textContent = RANKS[pos % 13];
         row.appendChild(slot);
