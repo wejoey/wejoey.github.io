@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#050816">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Comète</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="c" aria-label="Zone de jeu"></canvas>
+
+  <header class="hud">
+    <a class="btn" href="../" aria-label="Accueil">←</a>
+    <div class="nav">
+      <button class="btn" id="prev" type="button" aria-label="Niveau précédent">‹</button>
+      <div class="level">
+        <span id="lvl">Niveau 1</span>
+        <span id="best" class="best" aria-label="Meilleur résultat">☆☆☆</span>
+      </div>
+      <button class="btn" id="next" type="button" aria-label="Niveau suivant">›</button>
+    </div>
+    <div class="right">
+      <button class="btn" id="hint" type="button" aria-label="Indice" disabled>💡</button>
+      <button class="btn" id="mute" type="button" aria-label="Son">🔊</button>
+    </div>
+  </header>
+
+  <p class="tip" id="tip" aria-live="polite"></p>
+
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h1 id="o-title">COMÈTE</h1>
+      <p class="o-stars" id="o-stars" hidden></p>
+      <p id="o-text">Lance la comète, courbe sa trajectoire autour des planètes et atteins le portail. Chaque niveau est généré puis résolu par un robot&nbsp;: il existe toujours un tir parfait.</p>
+      <div class="o-actions">
+        <button class="cta ghost" id="o-retry" type="button" hidden>Rejouer</button>
+        <button class="cta" id="o-go" type="button">Jouer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
