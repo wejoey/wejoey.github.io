@@ -84,38 +84,48 @@
     }
   }
 
+  // La table : une colonne par couleur, et seulement 3 cases de haut :
+  //   - en haut, la pile qui monte (8, 9… Roi, puis l'As s'il va en haut) ;
+  //   - au milieu, le 7 ;
+  //   - en bas, la pile qui descend (6, 5… 2, puis l'As s'il va en bas).
+  // Seule la dernière carte de chaque pile est visible ; l'épaisseur montre
+  // combien de cartes sont dessous.
   function renderBoard() {
     boardEl.innerHTML = "";
     SUITS.forEach((suit, s) => {
-      const row = document.createElement("div");
-      row.className = "row";
-      row.setAttribute("aria-label", `Rangée ${sym(s)}`);
+      const col = document.createElement("div");
+      col.className = "pile-col";
+      col.setAttribute("aria-label", `Couleur ${sym(s)}`);
       const r0 = board[s];
-      const aceGone = R.aceUsed(r0);
-      const side = R.aceSide(board); // côté choisi par l'As♦, pour toutes les couleurs
-      for (let pos = 0; pos <= ACE_HIGH; pos++) {
+      const top = r0 && r0.high > SEVEN ? r0.high : null;       // dernière carte de la pile du haut
+      const bottom = r0 && r0.low < SEVEN ? r0.low : null;      // dernière carte de la pile du bas
+      const cells = [
+        { pos: top, next: r0 ? r0.high + 1 : null, depth: top === null ? 0 : top - SEVEN, dir: "up" },
+        { pos: r0 ? SEVEN : null, next: SEVEN, depth: 0, dir: "mid" },
+        { pos: bottom, next: r0 ? r0.low - 1 : null, depth: bottom === null ? 0 : SEVEN - bottom, dir: "down" },
+      ];
+      for (const cell of cells) {
         const slot = document.createElement("span");
-        slot.className = "slot";
-        const filled = r0 && pos >= r0.low && pos <= r0.high;
-        if (filled) {
+        slot.className = `slot ${cell.dir}`;
+        if (cell.pos !== null) {
           slot.classList.add("filled");
           if (suit.red) slot.classList.add("red");
-          if (lastPlayed && lastPlayed.s === s && lastPlayed.pos === pos) slot.classList.add("just");
-        } else if (pos === SEVEN) {
+          if (cell.depth > 1) slot.classList.add(`stack-${Math.min(cell.depth - 1, 3)}`);
+          if (lastPlayed && lastPlayed.s === s && lastPlayed.pos === cell.pos) slot.classList.add("just");
+          slot.innerHTML = `<span>${RANKS[cell.pos % 13]}</span><span class="slot-suit">${sym(s)}</span>`;
+          slot.setAttribute("aria-label", RANKS[cell.pos % 13] + sym(s));
+        } else if (cell.dir === "mid") {
           slot.classList.add("seven");
-        } else if ((pos === 0 || pos === ACE_HIGH) &&
-                   (aceGone || (side === "low" && pos === ACE_HIGH) || (side === "high" && pos === 0))) {
-          slot.classList.add("gone"); // l'As est déjà posé, ou il va de l'autre côté
-        } else if (r0 && (pos === r0.low - 1 || pos === r0.high + 1)) {
-          // Une case n'est encadrée que si sa carte peut vraiment y aller
-          // (le carreau mène, et les autres As attendent l'As♦).
-          if (R.targetPos(board, { s, r: pos % 13 }, firstMove) === pos) slot.classList.add("next");
+          slot.innerHTML = `<span>7</span><span class="slot-suit">${sym(s)}</span>`;
         }
-        // Le symbole est sur chaque carte (♠ ♣ en noir, ♥ ♦ en rouge sur les cartes posées).
-        slot.innerHTML = `<span>${RANKS[pos % 13]}</span><span class="slot-suit">${sym(s)}</span>`;
-        row.appendChild(slot);
+        // Encadre la pile où la prochaine carte peut aller
+        // (le carreau mène, et les autres As attendent l'As♦).
+        const nxt = cell.next;
+        if (nxt !== null && nxt >= 0 && nxt <= ACE_HIGH &&
+            R.targetPos(board, { s, r: nxt % 13 }, firstMove) === nxt) slot.classList.add("next");
+        col.appendChild(slot);
       }
-      boardEl.appendChild(row);
+      boardEl.appendChild(col);
     });
   }
 
@@ -124,6 +134,7 @@
     const h = hands[0] || [];
     const myTurn = current === 0 && !over && giveTo === null;
     const giving = giveTo !== null && !over;
+    handEl.classList.toggle("many", h.length > 21); // contre 1 bot : 26 cartes, une colonne de plus
     h.forEach((c) => {
       const b = document.createElement("button");
       b.type = "button";

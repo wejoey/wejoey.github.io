@@ -139,41 +139,45 @@ html, body {
 }
 .chip.red { color: var(--red); }
 
-/* ---------- Table ---------- */
+/* ---------- Table : 4 colonnes (une par couleur), 3 cases de haut ---------- */
 .board {
+  --cw: clamp(36px, 11vw, 48px);         /* largeur d'une carte sur la table */
   background: var(--felt-dark);
   border-radius: 12px;
-  padding: 8px 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.row {
+  padding: 10px 6px 8px;
   display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  gap: 2px;
-  align-items: center;
+  grid-template-columns: repeat(4, var(--cw));
+  justify-content: center;
+  column-gap: clamp(12px, 5vw, 28px);
 }
+.pile-col { display: flex; flex-direction: column; gap: 6px; }
 .slot {
-  aspect-ratio: 5 / 7;
-  border-radius: 4px;
+  width: var(--cw);
+  aspect-ratio: 5 / 6;
+  border-radius: 6px;
   background: var(--slot);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.55rem, 2.8vw, 0.9rem);
+  font-size: calc(var(--cw) * 0.36);
   font-weight: 800;
   line-height: 1;
   color: rgba(255, 255, 255, 0.25);
 }
-.slot-suit { font-size: 0.85em; margin-top: 1px; }
-.slot.gone { visibility: hidden; }
+.slot-suit { font-size: 0.85em; margin-top: 2px; }
 .slot.seven { outline: 1px dashed rgba(255, 255, 255, 0.35); }
-.slot.filled { background: var(--card); color: var(--black); }
-.slot.filled.red { color: var(--red); }
-.slot.next { outline: 2px solid rgba(250, 204, 21, 0.55); }
-.slot.just { animation: pop 0.4s ease-out; box-shadow: 0 0 0 2px var(--accent); }
+.slot.filled { background: var(--card); color: var(--black); }   /* ♠ ♣ en noir */
+.slot.filled.red { color: var(--red); }                          /* ♥ ♦ en rouge */
+/* Épaisseur de la pile : des bords de cartes dépassent derrière la dernière */
+.slot.up.stack-1   { box-shadow: 0 -3px 0 -1px #d6ddd9; }
+.slot.up.stack-2   { box-shadow: 0 -3px 0 -1px #d6ddd9, 0 -6px 0 -2px #b8c3bd; }
+.slot.up.stack-3   { box-shadow: 0 -3px 0 -1px #d6ddd9, 0 -6px 0 -2px #b8c3bd, 0 -9px 0 -3px #9aa8a1; }
+.slot.down.stack-1 { box-shadow: 0 3px 0 -1px #d6ddd9; }
+.slot.down.stack-2 { box-shadow: 0 3px 0 -1px #d6ddd9, 0 6px 0 -2px #b8c3bd; }
+.slot.down.stack-3 { box-shadow: 0 3px 0 -1px #d6ddd9, 0 6px 0 -2px #b8c3bd, 0 9px 0 -3px #9aa8a1; }
+.slot.next { outline: 2px solid rgba(250, 204, 21, 0.7); outline-offset: 2px; }
+.slot.just { animation: pop 0.4s ease-out; outline: 3px solid var(--accent); outline-offset: 1px; }
 @keyframes pop { from { transform: scale(1.5); } to { transform: scale(1); } }
 
 /* ---------- Statut & boutons ---------- */
@@ -204,9 +208,11 @@ html, body {
 .hand-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
 .hand {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 48px));
+  justify-content: center;
   gap: 6px;
 }
+.hand.many { grid-template-columns: repeat(9, 1fr); gap: 4px; }
 .card {
   aspect-ratio: 5 / 7;
   border: 0;
@@ -255,7 +261,8 @@ html, body {
   .col-hand { flex: 1; }
   .top h1 { font-size: 1rem; }
   .table:has(.seat) { padding: 76px 0 42px; }
-  .board { padding: 6px 4px; gap: 4px; }
+  .board { --cw: 40px; padding: 8px 4px; }
+  .pile-col { gap: 5px; }
   .slot { aspect-ratio: 5 / 6; }
   .status { min-height: 0; }
   .actions { min-height: 0; }
@@ -267,6 +274,8 @@ html, body {
 /* ---------- Petits téléphones en portrait (ex. iPhone SE) ---------- */
 @media (orientation: portrait) and (max-height: 640px) {
   .game { gap: 8px; }
+  .board { --cw: 36px; padding: 8px 6px; }
+  .pile-col { gap: 6px; }
   .status { min-height: 0; }
   .card { aspect-ratio: 5 / 6; }
 }
