@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#040714">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Globe-trotteur</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="c" aria-label="Globe terrestre"></canvas>
+
+  <header class="hud">
+    <a class="btn" href="../" aria-label="Accueil">←</a>
+    <div class="stat"><span id="round">Manche 1/8</span><strong id="score">0 pts</strong></div>
+    <button class="btn" id="mute" type="button" aria-label="Son">🔊</button>
+  </header>
+
+  <div class="question" id="question" aria-live="polite">
+    <span id="q-kind">Où se trouve…</span>
+    <strong id="q-name"></strong>
+  </div>
+
+  <div class="zoom">
+    <button class="btn" id="zin" type="button" aria-label="Zoomer">+</button>
+    <button class="btn" id="zout" type="button" aria-label="Dézoomer">−</button>
+  </div>
+
+  <footer class="panel" id="panel">
+    <p id="res" aria-live="polite"></p>
+    <button class="cta" id="ok" type="button" disabled>Valider</button>
+  </footer>
+
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h1 id="o-title">GLOBE-TROTTEUR</h1>
+      <p class="o-big" id="o-big" hidden></p>
+      <p id="o-text">8 lieux à retrouver sur la Terre. Fais tourner le globe, zoome, touche l'endroit exact puis valide&nbsp;: plus tu es près, plus tu marques de points.</p>
+      <div class="o-actions"><button class="cta" id="o-go" type="button">Jouer</button></div>
+    </div>
+  </div>
+
+  <script src="world.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
