@@ -74,6 +74,34 @@ function rowFrom(low, high, suit = 1) {
   return board;
 }
 
+test("le carreau mène : pas de 8♠ tant que le 8♦ n'est pas posé", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  R.placeCard(board, card("7", S), false);
+  assert.ok(!R.canPlay(board, card("8", S), false), "8♠ avant le 8♦");
+  assert.ok(!R.canPlay(board, card("6", S), false), "6♠ avant le 6♦");
+  R.placeCard(board, card("8", D), false);
+  assert.ok(R.canPlay(board, card("8", S), false), "8♠ après le 8♦");
+  assert.ok(!R.canPlay(board, card("6", S), false), "toujours pas de 6♠");
+  R.placeCard(board, card("6", D), false);
+  assert.ok(R.canPlay(board, card("6", S), false), "6♠ après le 6♦");
+});
+
+test("le carreau mène aussi plus loin dans la rangée", () => {
+  const board = R.emptyBoard();
+  board[2] = { low: 3, high: 9 };  // ♦ du 4 au 10
+  board[1] = { low: 4, high: 9 };  // ♥ du 5 au 10
+  assert.ok(R.canPlay(board, card("4", H), false), "4♥ : le 4♦ est posé");
+  assert.ok(!R.canPlay(board, card("V", H), false), "V♥ : le V♦ n'est pas posé");
+  assert.ok(R.diamondReached(board, 3) && !R.diamondReached(board, 10));
+});
+
+test("les 7 se posent dès que le 7♦ est sur la table", () => {
+  const board = R.emptyBoard();
+  R.placeCard(board, card("7", D), true);
+  for (const suit of [S, H, C]) assert.ok(R.canPlay(board, card("7", suit), false));
+});
+
 test("l'As♦ n'est pas jouable tant qu'il n'y a ni 2♦ ni Roi♦", () => {
   assert.equal(R.targetPos(rowFrom(2, 11, 2), card("A", D), false), null);
 });
@@ -169,22 +197,26 @@ test("le bot compte l'As seulement du côté choisi par l'As♦", () => {
 test("les carreaux valent plus pour le bot", () => {
   const board = R.emptyBoard();
   R.placeCard(board, card("7", D), true);
+  R.placeCard(board, card("8", D), false);
+  R.placeCard(board, card("6", D), false);
   R.placeCard(board, card("7", S), false);
-  // 6♠ libère 5♠ (1) ; 8♦ libère 9♦ (2) : le bot pose le 8♦.
-  const hand = [card("5", S), card("6", S), card("8", D), card("9", D)];
-  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand, false, seeded(i)), card("8", D));
+  // 8♠ libère 9♠ (1) ; 9♦ libère 10♦ (2) : le bot pose le 9♦.
+  const hand = [card("8", S), card("9", S), card("9", D), card("10", D)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand, false, seeded(i)), card("9", D));
   // À égalité (rien de libéré), il préfère poser un carreau.
-  const hand2 = [card("6", S), card("8", D)];
-  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand2, false, seeded(i)), card("8", D));
+  const hand2 = [card("8", S), card("5", D)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.botChoose(board, hand2, false, seeded(i)), card("5", D));
 });
 
 test("à distance égale, le bot garde ses carreaux et donne une autre carte", () => {
   const board = R.emptyBoard();
-  R.placeCard(board, card("7", D), true);
-  R.placeCard(board, card("7", C), false);
-  // R♦ et R♣ sont tous les deux à 5 cartes d'être jouables.
-  const hand = [card("R", D), card("R", C)];
-  for (let i = 0; i < 20; i++) assert.deepEqual(R.worstCard(board, hand, seeded(i)), card("R", C));
+  board[2] = { low: 6, high: 8 };  // ♦ du 7 au 9
+  board[3] = { low: 6, high: 6 };  // 7♣
+  // R♦ : 10, V, D (3) ; 4♣ : 6♣, 5♣ et il faut aussi le 4♦ (6♦, 5♦, 4♦) → 3.
+  assert.equal(R.distance(board, card("R", D)), 3);
+  assert.equal(R.distance(board, card("4", C)), 3);
+  const hand = [card("R", D), card("4", C)];
+  for (let i = 0; i < 20; i++) assert.deepEqual(R.worstCard(board, hand, seeded(i)), card("4", C));
 });
 
 test("un joueur qui peut jouer est obligé de jouer : il ne peut pas demander de carte", () => {
