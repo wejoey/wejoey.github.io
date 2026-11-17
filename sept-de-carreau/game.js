@@ -89,11 +89,7 @@
     SUITS.forEach((suit, s) => {
       const row = document.createElement("div");
       row.className = "row";
-      const head = document.createElement("span");
-      head.className = "row-suit";
-      if (suit.red) head.classList.add("red");
-      head.textContent = sym(s);
-      row.appendChild(head);
+      row.setAttribute("aria-label", `Rangée ${sym(s)}`);
       const r0 = board[s];
       const aceGone = R.aceUsed(r0);
       const side = R.aceSide(board); // côté choisi par l'As♦, pour toutes les couleurs
@@ -115,7 +111,8 @@
           // (le carreau mène, et les autres As attendent l'As♦).
           if (R.targetPos(board, { s, r: pos % 13 }, firstMove) === pos) slot.classList.add("next");
         }
-        slot.textContent = RANKS[pos % 13];
+        // Le symbole est sur chaque carte (♠ ♣ en noir, ♥ ♦ en rouge sur les cartes posées).
+        slot.innerHTML = `<span>${RANKS[pos % 13]}</span><span class="slot-suit">${sym(s)}</span>`;
         row.appendChild(slot);
       }
       boardEl.appendChild(row);
