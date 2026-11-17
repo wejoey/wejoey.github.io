@@ -1,0 +1,222 @@
+:root {
+  --felt: #14532d;
+  --felt-dark: #0f3d22;
+  --text: #f9fafb;
+  --muted: #bbf7d0;
+  --accent: #facc15;
+  --card: #ffffff;
+  --red: #dc2626;
+  --black: #111827;
+  --slot: rgba(255, 255, 255, 0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  background: var(--felt);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.game {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+           max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.top h1 { font-size: 1.2rem; font-weight: 800; }
+.home { color: var(--muted); font-size: 0.85rem; text-decoration: none; }
+.home:hover, .home:focus-visible { color: var(--text); text-decoration: underline; }
+.links { display: flex; gap: 14px; align-items: baseline; }
+.link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.link:hover, .link:focus-visible { color: var(--text); }
+.score { color: var(--muted); font-size: 0.9rem; }
+
+/* ---------- Fenêtre des règles ---------- */
+.rules {
+  margin: auto;
+  max-width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 0;
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  background: var(--felt-dark);
+  color: var(--text);
+}
+.rules::backdrop { background: rgba(0, 0, 0, 0.6); }
+.rules h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.rules ul { padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; line-height: 1.35; margin-bottom: 14px; }
+.rules .btn { display: block; margin: 0 auto; }
+
+/* ---------- Bots ---------- */
+.bots { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.bots:empty { display: none; }
+.bot {
+  background: var(--felt-dark);
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.bot.turn { border-color: var(--accent); }
+.bot.asked .bot-info::after { content: " · a demandé"; color: var(--muted); }
+.bot-name { font-weight: 700; font-size: 0.95rem; }
+.bot-info { font-size: 0.8rem; color: var(--muted); }
+.bot.winner { border-color: var(--accent); background: #3f3a0b; }
+
+/* ---------- Table ---------- */
+.board {
+  background: var(--felt-dark);
+  border-radius: 12px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1.2em repeat(14, 1fr);
+  gap: 2px;
+  align-items: center;
+}
+.row-suit { font-size: 1.1rem; text-align: center; }
+.slot {
+  aspect-ratio: 5 / 7;
+  border-radius: 4px;
+  background: var(--slot);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.55rem, 2.8vw, 0.9rem);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.25);
+}
+.slot.gone { visibility: hidden; }
+.slot.seven { outline: 1px dashed rgba(255, 255, 255, 0.35); }
+.slot.filled { background: var(--card); color: var(--black); }
+.slot.filled.red { color: var(--red); }
+.slot.next { outline: 2px solid rgba(250, 204, 21, 0.55); }
+.slot.just { animation: pop 0.4s ease-out; box-shadow: 0 0 0 2px var(--accent); }
+@keyframes pop { from { transform: scale(1.5); } to { transform: scale(1); } }
+
+/* ---------- Statut & boutons ---------- */
+.status { text-align: center; min-height: 2.6em; font-weight: 600; line-height: 1.3; }
+.actions { display: flex; justify-content: center; gap: 10px; min-height: 48px; }
+.setup { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.setup[hidden] { display: none; }
+.setup-title { font-weight: 700; }
+.choices { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.btn.btn-choice { width: 52px; height: 52px; padding: 0; font-size: 1.3rem; }
+.btn {
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #111;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1.05rem;
+  padding: 0.75rem 1.6rem;
+  cursor: pointer;
+}
+.btn-ask { background: #f97316; }
+.btn[hidden] { display: none; }
+
+/* ---------- Main du joueur ---------- */
+.hand-zone { margin-top: auto; }
+.hand-zone:has(.hand:empty) { display: none; }
+.hand-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+.hand {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.card {
+  aspect-ratio: 5 / 7;
+  border: 0;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--black);
+  font: inherit;
+  font-weight: 800;
+  font-size: clamp(0.9rem, 4.5vw, 1.3rem);
+  line-height: 1.05;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  opacity: 0.55;
+  cursor: default;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.card.red { color: var(--red); }
+.card.playable {
+  opacity: 1;
+  cursor: pointer;
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 3px var(--accent), 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+.card:disabled { cursor: default; }
+/* Choisir la carte à donner à un bot */
+.card.give { box-shadow: 0 0 0 3px #f97316, 0 4px 8px rgba(0, 0, 0, 0.4); }
+
+/* Colonnes : invisibles en portrait (tout reste empilé) */
+.col { display: contents; }
+
+/* ---------- Téléphone en paysage : table à gauche, main à droite ---------- */
+@media (orientation: landscape) and (max-height: 540px) {
+  .game {
+    max-width: none;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .col-table { flex: 1.1; }
+  .col-hand { flex: 1; }
+  .top h1 { font-size: 1rem; }
+  .bot { padding: 4px; }
+  .bot-name { font-size: 0.85rem; }
+  .bots { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+  .board { padding: 6px 4px; gap: 4px; }
+  .slot { aspect-ratio: 5 / 6; }
+  .status { min-height: 0; }
+  .actions { min-height: 0; }
+  .hand-zone { margin-top: 0; }
+  .hand { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; }
+  .card { font-size: 1rem; }
+}
+
+/* ---------- Petits téléphones en portrait (ex. iPhone SE) ---------- */
+@media (orientation: portrait) and (max-height: 640px) {
+  .game { gap: 8px; }
+  .bot { padding: 4px; }
+  .status { min-height: 0; }
+  .card { aspect-ratio: 5 / 6; }
+}

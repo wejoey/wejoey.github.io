@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14532d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Le 7 de carreau</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game">
+    <!-- En portrait tout est empilé ; en paysage : table à gauche, main à droite -->
+    <div class="col col-table">
+    <header class="top">
+      <nav class="links">
+        <a class="home" href="../">← Accueil</a>
+        <button class="link" id="btn-rules" type="button">Règles</button>
+      </nav>
+      <h1>Le 7 de carreau</h1>
+    </header>
+
+    <!-- Les bots : nom + nombre de cartes restantes -->
+    <ul class="bots" id="bots" aria-label="Adversaires"></ul>
+
+    <!-- La table : une rangée par couleur, de l’As (bas) au Roi puis l’As (haut) -->
+    <section class="board" id="board" aria-label="Table"></section>
+    </div>
+
+    <div class="col col-hand">
+
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <!-- Choix du nombre de bots, au début et à la fin de chaque partie -->
+    <section class="setup" id="setup">
+      <p class="setup-title">Contre combien de bots veux-tu jouer&nbsp;?</p>
+      <div class="choices" id="bot-choices"></div>
+      <p class="score" id="score"></p>
+      <button class="link" id="btn-speed" type="button">Bots : vitesse normale</button>
+    </section>
+
+    <div class="actions">
+      <button class="btn btn-ask" id="btn-ask" type="button" hidden>Demander une carte</button>
+    </div>
+
+    <!-- La main du joueur -->
+    <section class="hand-zone">
+      <p class="hand-title">Ta main <span id="hand-count"></span></p>
+      <div class="hand" id="hand" aria-label="Ta main"></div>
+    </section>
+    </div>
+  </main>
+
+  <!-- Résumé des règles -->
+  <dialog class="rules" id="rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">Règles du 7 de carreau</h2>
+    <ul>
+      <li>On joue avec 52 cartes, sans jokers, toi contre 1 à 5 bots. Toutes les cartes sont distribuées.</li>
+      <li>Celui qui a le <strong>7♦</strong> commence en le posant.</li>
+      <li>À ton tour, tu poses un <strong>7</strong> pour ouvrir une couleur, ou la carte qui suit une rangée, en montant (8, 9… Roi) ou en descendant (6, 5… 2).</li>
+      <li>L’<strong>As♦</strong> se pose sous le 2♦ ou au-dessus du Roi♦. Tous les autres As vont ensuite du même côté.</li>
+      <li>Si tu peux jouer, tu es obligé de jouer.</li>
+      <li>Si tu ne peux pas, tu demandes une carte au joueur qui te précède. Il choisit laquelle te donner, et ton tour est fini.</li>
+      <li>La partie se termine dès qu’un joueur n’a plus de cartes : il gagne.</li>
+    </ul>
+    <button class="btn" id="btn-rules-close" type="button">Compris !</button>
+  </dialog>
+
+  <script src="rules.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
