@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1d3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Coup de circuit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="c" aria-label="Terrain de baseball : touche l'écran pour frapper"></canvas>
+
+  <header class="hud">
+    <a class="btn" href="../" aria-label="Accueil">←</a>
+    <div class="score">
+      <div class="teams">
+        <span class="me">TOI <b id="s-me">0</b></span>
+        <span class="op">RATONS <b id="s-op">0</b></span>
+      </div>
+      <div class="board">
+        <svg class="diamond" viewBox="0 0 40 26" aria-label="Coureurs sur les buts">
+          <rect id="b2" x="15.5" y="1.5" width="9" height="9" transform="rotate(45 20 6)" />
+          <rect id="b3" x="4.5" y="12.5" width="9" height="9" transform="rotate(45 9 17)" />
+          <rect id="b1" x="26.5" y="12.5" width="9" height="9" transform="rotate(45 31 17)" />
+        </svg>
+        <div class="count">
+          <span>B <i id="c-b"></i></span>
+          <span>P <i id="c-p"></i></span>
+          <span>R <i id="c-r"></i></span>
+        </div>
+        <div class="inning" id="inning">1<sup>re</sup></div>
+      </div>
+    </div>
+    <button class="btn" id="mute" type="button" aria-label="Son">🔊</button>
+  </header>
+
+  <div class="banner" id="banner" aria-live="polite"></div>
+  <p class="pitch" id="pitch"></p>
+
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h1 id="o-title">COUP DE CIRCUIT</h1>
+      <p class="o-big" id="o-big" hidden></p>
+      <p id="o-text">Les Ratons ont marqué des points. À toi de les battre en 3 manches&nbsp;! Touche l'écran <b>là où</b> la balle passe, <b>au moment</b> où elle arrive. Touche un peu sous la balle pour la faire lever.</p>
+      <p class="o-stats" id="o-stats"></p>
+      <div class="o-actions">
+        <button class="cta ghost" id="o-recrue" type="button">Recrue</button>
+        <button class="cta" id="o-pro" type="button">Pro</button>
+      </div>
+      <button class="link" id="o-rules" type="button">Règles</button>
+    </div>
+  </div>
+
+  <dialog class="rules" id="rules">
+    <h2>Règles</h2>
+    <ul>
+      <li>Le lanceur lance : rapide, glissante, courbe ou changement de vitesse.</li>
+      <li>Touche l'écran à la hauteur de la balle, au moment où elle traverse la zone des prises. Trop tôt, la balle part à gauche ; trop tard, à droite.</li>
+      <li>Touche sous la balle pour un ballon, au-dessus pour un roulant.</li>
+      <li>Balle dans la zone sans frapper : <b>prise</b>. Hors de la zone : <b>balle</b>.</li>
+      <li>3 prises : retiré. 4 balles : but sur balles. 3 retraits : fin de la manche.</li>
+      <li>Simple, double, triple ou coup de circuit : fais avancer tes coureurs et marque plus de points que les Ratons en 3 manches.</li>
+      <li><b>Recrue</b> : lancers plus lents et un cercle montre où passera la balle.</li>
+    </ul>
+    <form method="dialog"><button class="cta" type="submit">OK</button></form>
+  </dialog>
+
+  <script src="physique.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
