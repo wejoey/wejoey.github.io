@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <title>Limites GitHub Pages</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <p class="retour"><a href="../">← Applications</a></p>
+      <h1>Limites GitHub Pages</h1>
+      <p class="sous-titre">
+        Où en est <strong>wejoey.github.io</strong> par rapport aux limites de GitHub Pages.
+        <span id="maj"></span>
+      </p>
+
+      <p id="erreur" class="erreur" hidden></p>
+
+      <section class="carte" id="carte-site">
+        <h2>Taille du site publié</h2>
+        <p class="valeur"><span id="site-val">…</span> <span class="sur">/ 1 Go</span></p>
+        <div class="barre"><div id="site-barre"></div></div>
+        <p class="note">Somme des fichiers de la branche publiée (<span id="site-nb">…</span> fichiers). Limite stricte : 1 Go.</p>
+      </section>
+
+      <section class="carte" id="carte-repo">
+        <h2>Taille du dépôt</h2>
+        <p class="valeur"><span id="repo-val">…</span> <span class="sur">/ 1 Go recommandé</span></p>
+        <div class="barre"><div id="repo-barre"></div></div>
+        <p class="note">Inclut tout l'historique Git. GitHub recommande de rester sous 1 Go.</p>
+      </section>
+
+      <section class="carte" id="carte-deploy">
+        <h2>Déploiements dans la dernière heure</h2>
+        <p class="valeur"><span id="deploy-val">…</span> <span class="sur">/ 10 par heure</span></p>
+        <div class="barre"><div id="deploy-barre"></div></div>
+        <p class="note" id="deploy-note">Limite souple de 10 builds par heure.</p>
+      </section>
+
+      <section class="carte" id="carte-fichiers">
+        <h2>Plus gros fichiers</h2>
+        <p class="note">Limite par fichier : 100 Mo (GitHub avertit dès 50 Mo).</p>
+        <ol id="fichiers" class="fichiers"><li>…</li></ol>
+      </section>
+
+      <section class="carte">
+        <h2>Bande passante</h2>
+        <p class="valeur"><span>Non disponible</span> <span class="sur">/ 100 Go par mois</span></p>
+        <p class="note">
+          GitHub ne publie pas la bande passante utilisée par un site Pages, ni dans l'interface ni
+          dans l'API. Limite souple de 100 Go par mois : GitHub envoie un courriel si elle est
+          dépassée. Pour un site de petits jeux comme celui-ci, on en est très loin.
+        </p>
+      </section>
+
+      <footer class="note">
+        Données lues en direct depuis l'API publique de GitHub, sans connexion
+        (<span id="quota">60 requêtes par heure</span>, 3 par visite).
+        <br /><button id="rafraichir" type="button">Rafraîchir</button>
+      </footer>
+    </main>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
